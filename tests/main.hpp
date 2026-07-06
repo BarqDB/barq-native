@@ -37,8 +37,8 @@ struct barq_path {
     ~barq_path() { 
         try {
             path = std::filesystem::current_path().append(path).generic_string();
-            std::filesystem::remove_all(path + ".barq.management");
-            std::filesystem::remove_all(path + ".management");
+            std::filesystem::remove_all(path + ".barq.control");
+            std::filesystem::remove_all(path + ".control");
             std::filesystem::remove(path);
             std::filesystem::remove(path + ".barq");
             std::filesystem::remove(path + ".barq.lock");
