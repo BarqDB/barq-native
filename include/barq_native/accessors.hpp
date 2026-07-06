@@ -28,6 +28,10 @@
 namespace barq::native {
     template<typename>
     struct primary_key;
+    template<typename>
+    struct indexed;
+    template<typename>
+    struct fulltext;
 
     template <typename T, typename = void>
     struct accessor {
@@ -471,6 +475,28 @@ namespace barq::native {
             } else {
                 obj.set(key, value.value);
             }
+        }
+    };
+
+    // MARK: - accessor index wrappers
+    // An indexed column stores the same value as a plain one, so defer to the
+    // underlying type's accessor after unwrapping.
+    template <typename T>
+    struct accessor<indexed<T>> {
+        static inline void set(internal::bridge::obj& obj,
+                               const internal::bridge::col_key& key,
+                               const internal::bridge::barq& barq,
+                               const indexed<T>& value) {
+            accessor<T>::set(obj, key, barq, value.value);
+        }
+    };
+    template <typename T>
+    struct accessor<fulltext<T>> {
+        static inline void set(internal::bridge::obj& obj,
+                               const internal::bridge::col_key& key,
+                               const internal::bridge::barq& barq,
+                               const fulltext<T>& value) {
+            accessor<T>::set(obj, key, barq, value.value);
         }
     };
 } // barq

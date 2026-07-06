@@ -77,6 +77,10 @@ namespace barq::native::internal::bridge {
         void set_type(type);
         void set_primary_key(bool);
         bool is_primary() const;
+        void set_indexed(bool);
+        void set_fulltext_indexed(bool);
+        bool is_indexed() const;
+        bool is_fulltext_indexed() const;
         std::string name() const;
         [[nodiscard]] col_key column_key() const;
     private:

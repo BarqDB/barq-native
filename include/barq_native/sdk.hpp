@@ -43,6 +43,7 @@
 #include <barq_native/managed_numeric.hpp>
 #include <barq_native/managed_objectid.hpp>
 #include <barq_native/managed_primary_key.hpp>
+#include <barq_native/managed_indexed.hpp>
 #include <barq_native/managed_set.hpp>
 #include <barq_native/managed_string.hpp>
 #include <barq_native/managed_timestamp.hpp>

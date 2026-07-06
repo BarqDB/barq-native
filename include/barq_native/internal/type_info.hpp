@@ -39,6 +39,10 @@ namespace barq::native {
     struct linking_objects;
     template <typename>
     struct primary_key;
+    template <typename>
+    struct indexed;
+    template <typename>
+    struct fulltext;
 }
 namespace barq::native::internal::type_info {
     template <typename T, typename = void>
@@ -308,6 +312,56 @@ namespace barq::native::internal::type_info {
         static constexpr bridge::property::type type() {
             return type_info<T>::type();
         }
+    };
+
+    // A property carrying a general search index, e.g. `indexed<std::string> email;`.
+    template <typename T>
+    struct is_indexed : std::false_type {
+        static constexpr auto value = false;
+    };
+    template <typename T>
+    struct is_indexed<indexed<T>> : std::true_type {
+        static constexpr auto value = true;
+    };
+
+    // A string property carrying a full-text index, e.g. `fulltext<std::string> bio;`.
+    template <typename T>
+    struct is_fulltext_indexed : std::false_type {
+        static constexpr auto value = false;
+    };
+    template <typename T>
+    struct is_fulltext_indexed<fulltext<T>> : std::true_type {
+        static constexpr auto value = true;
+    };
+
+    // Both index wrappers behave like the underlying type for storage purposes.
+    template <typename T>
+    struct type_info<indexed<T>, void> {
+        using internal_type = typename type_info<T>::internal_type;
+        static constexpr bridge::property::type type() {
+            return type_info<T>::type();
+        }
+    };
+    template <typename T>
+    struct type_info<fulltext<T>, void> {
+        using internal_type = typename type_info<T>::internal_type;
+        static constexpr bridge::property::type type() {
+            return type_info<T>::type();
+        }
+    };
+
+    // Strips an index wrapper down to the value type it wraps (identity otherwise).
+    template <typename T>
+    struct remove_index {
+        using type = T;
+    };
+    template <typename T>
+    struct remove_index<indexed<T>> {
+        using type = T;
+    };
+    template <typename T>
+    struct remove_index<fulltext<T>> {
+        using type = T;
     };
 
 }

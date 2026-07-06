@@ -66,15 +66,19 @@ namespace barq::native {
 
     // MARK: schema
     namespace schemagen {
-        template <auto Ptr, bool IsPrimaryKey = false>
+        template <auto Ptr, bool IsPrimaryKey = false, bool IsIndexed = false, bool IsFulltext = false>
         struct property {
             using Result = typename internal::persisted_type_extractor<typename internal::ptr_type_extractor<Ptr>::member_type>::Result;
+            // Index wrappers are transparent, so the value-facing type strips them off.
+            using UnwrappedResult = typename internal::type_info::remove_index<Result>::type;
             using VariantResult =
-                    std::conditional_t<std::is_pointer_v<Result>, managed<Result>, Result>;
+                    std::conditional_t<std::is_pointer_v<UnwrappedResult>, managed<UnwrappedResult>, UnwrappedResult>;
 
             using Class = typename internal::ptr_type_extractor<Ptr>::class_type;
             static constexpr auto ptr = Ptr;
             static constexpr bool is_primary_key = IsPrimaryKey || internal::type_info::is_primary_key<Result>::value;
+            static constexpr bool is_indexed = IsIndexed || internal::type_info::is_indexed<Result>::value;
+            static constexpr bool is_fulltext_indexed = IsFulltext || internal::type_info::is_fulltext_indexed<Result>::value;
             internal::bridge::property::type type;
             const char* name = "";
 
@@ -112,6 +116,13 @@ namespace barq::native {
                     property.set_type(type | internal::bridge::property::type::Nullable);
                 } else if constexpr (internal::type_info::is_backlink<Result>::value) {
                     return internal::bridge::property{};
+                }
+
+                if constexpr (is_indexed) {
+                    property.set_indexed(true);
+                }
+                if constexpr (is_fulltext_indexed) {
+                    property.set_fulltext_indexed(true);
                 }
 
                 return property;
@@ -308,10 +319,10 @@ namespace barq::native {
             ObjectType m_object_type = ObjectType::None;
         };
     }
-    template <auto Ptr, bool IsPrimaryKey = false>
+    template <auto Ptr, bool IsPrimaryKey = false, bool IsIndexed = false, bool IsFulltext = false>
     static constexpr auto property(const char* name)
     {
-        return schemagen::property<Ptr, IsPrimaryKey>(name);
+        return schemagen::property<Ptr, IsPrimaryKey, IsIndexed, IsFulltext>(name);
     }
 
     template <typename ...T>

@@ -43,7 +43,7 @@ namespace barq::native {
     namespace schemagen {
         template <typename Class, typename ...Properties>
         struct schema;
-        template <auto Ptr, bool IsPrimaryKey>
+        template <auto Ptr, bool IsPrimaryKey, bool IsIndexed, bool IsFulltext>
         struct property;
     }
 

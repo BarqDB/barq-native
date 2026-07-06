@@ -135,6 +135,38 @@ namespace barq::native::internal::bridge {
 #endif
     }
 
+    void property::set_indexed(bool v) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        reinterpret_cast<Property*>(&m_property)->is_indexed = v;
+#else
+        m_property->is_indexed = v;
+#endif
+    }
+
+    void property::set_fulltext_indexed(bool v) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        reinterpret_cast<Property*>(&m_property)->is_fulltext_indexed = v;
+#else
+        m_property->is_fulltext_indexed = v;
+#endif
+    }
+
+    bool property::is_indexed() const {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return reinterpret_cast<const Property*>(&m_property)->is_indexed;
+#else
+        return m_property->is_indexed;
+#endif
+    }
+
+    bool property::is_fulltext_indexed() const {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return reinterpret_cast<const Property*>(&m_property)->is_fulltext_indexed;
+#else
+        return m_property->is_fulltext_indexed;
+#endif
+    }
+
     std::string property::name() const {
 #ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
         return reinterpret_cast<const Property*>(&m_property)->name;
