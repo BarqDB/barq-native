@@ -33,9 +33,6 @@ namespace barq {
     struct BarqConfig;
     struct SyncConfig;
     class SyncUser;
-    namespace app {
-        class User;
-    }
 }
 
 namespace barq::native {

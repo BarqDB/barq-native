@@ -34,7 +34,7 @@ namespace barq::native::internal::bridge {
             invalid_argument,
             file_access,
             system_error,
-            app_error,
+            backend_error,
             client_error,
             json_error,
             service_error,

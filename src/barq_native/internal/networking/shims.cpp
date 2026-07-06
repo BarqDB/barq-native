@@ -27,20 +27,20 @@ namespace barq::native::internal::networking {
         return std::make_unique<core_websocket_interface_shim>(std::move(m_interface));
     }
 
-    std::shared_ptr<app::GenericNetworkTransport> create_http_client_shim(const std::shared_ptr<::barq::native::networking::http_transport_client>& http_client) {
-        struct core_http_transport_shim : app::GenericNetworkTransport {
+    std::shared_ptr<core_transport::GenericNetworkTransport> create_http_client_shim(const std::shared_ptr<::barq::native::networking::http_transport_client>& http_client) {
+        struct core_http_transport_shim : core_transport::GenericNetworkTransport {
             ~core_http_transport_shim() = default;
             core_http_transport_shim(const std::shared_ptr<::barq::native::networking::http_transport_client>& http_client) {
                 m_http_client = http_client;
             }
 
-            void send_request_to_server(const app::Request& request,
-                                        util::UniqueFunction<void(const app::Response&)>&& completion) {
+            void send_request_to_server(const core_transport::Request& request,
+                                        util::UniqueFunction<void(const core_transport::Response&)>&& completion) {
                 auto completion_ptr = completion.release();
                 m_http_client->send_request_to_server(to_request(request),
                                                       [f = std::move(completion_ptr)]
                                                               (const ::barq::native::networking::response& response) {
-                                                          auto uf = util::UniqueFunction<void(const app::Response&)>(std::move(f));
+                                                          auto uf = util::UniqueFunction<void(const core_transport::Response&)>(std::move(f));
                                                           uf(to_core_response(response));
                                                       });
             }

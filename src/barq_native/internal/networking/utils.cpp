@@ -9,7 +9,7 @@
 
 namespace barq::native::internal::networking {
 
-    ::barq::native::networking::request to_request(const ::barq::app::Request& core_request) {
+    ::barq::native::networking::request to_request(const core_transport::Request& core_request) {
         ::barq::native::networking::request req;
         req.method = static_cast<::barq::native::networking::http_method>(core_request.method);
         req.url = core_request.url;
@@ -19,8 +19,8 @@ namespace barq::native::internal::networking {
         return req;
     }
 
-    ::barq::app::Response to_core_response(const ::barq::native::networking::response& req) {
-        ::barq::app::Response core_response;
+    core_transport::Response to_core_response(const ::barq::native::networking::response& req) {
+        core_transport::Response core_response;
         core_response.http_status_code = req.http_status_code;
         core_response.custom_status_code = req.custom_status_code;
         core_response.headers = req.headers;

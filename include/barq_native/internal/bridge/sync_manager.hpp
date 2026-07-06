@@ -26,7 +26,6 @@
 
 namespace barq {
     class SyncManager;
-    class App;
 }
 
 namespace barq::native {
@@ -37,7 +36,6 @@ namespace barq::native::internal::bridge {
         struct sync_manager {
             void set_log_level(logger::level);
         private:
-            friend class ::barq::App;
             friend struct ::barq::native::user;
             sync_manager(const std::shared_ptr<SyncManager> &);
             std::shared_ptr<SyncManager> m_manager;

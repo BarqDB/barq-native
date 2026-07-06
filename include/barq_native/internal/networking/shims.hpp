@@ -26,13 +26,16 @@ namespace barq {
     namespace sync {
         class SyncSocketProvider;
     }
-    namespace app {
+    namespace networking {
         struct GenericNetworkTransport;
     }
 }
 
 namespace barq::native::internal::networking {
-    std::shared_ptr<app::GenericNetworkTransport> create_http_client_shim(const std::shared_ptr<::barq::native::networking::http_transport_client>&);
+    // Neutral alias for core's generic HTTP transport namespace (barq::networking).
+    namespace core_transport = ::barq::networking;
+
+    std::shared_ptr<core_transport::GenericNetworkTransport> create_http_client_shim(const std::shared_ptr<::barq::native::networking::http_transport_client>&);
     std::unique_ptr<::barq::sync::SyncSocketProvider> create_sync_socket_provider_shim(const std::shared_ptr<::barq::native::networking::sync_socket_provider>& provider);
 }
 

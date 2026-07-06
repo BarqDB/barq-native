@@ -24,7 +24,7 @@
 #include <optional>
 
 namespace barq {
-    namespace app {
+    namespace networking {
         struct Request;
         struct Response;
     }
@@ -39,8 +39,11 @@ namespace barq::native::networking {
 }
 
 namespace barq::native::internal::networking {
-    ::barq::native::networking::request to_request(const ::barq::app::Request&);
-    ::barq::app::Response to_core_response(const ::barq::native::networking::response&);
+    // Neutral alias for core's generic HTTP transport namespace (barq::networking).
+    namespace core_transport = ::barq::networking;
+
+    ::barq::native::networking::request to_request(const core_transport::Request&);
+    core_transport::Response to_core_response(const ::barq::native::networking::response&);
 
     ::barq::sync::WebSocketEndpoint to_core_websocket_endpoint(const ::barq::native::networking::websocket_endpoint& ep,
                                                                 const std::optional<::barq::native::networking::default_socket_provider::configuration>& config);
