@@ -48,3 +48,16 @@ int main() {
     });
 }
 ```
+
+## License And Attribution
+
+Barq Native is a modified fork of the
+[Realm C++ SDK](https://github.com/realm/realm-cpp). The source files have been
+changed from their original form as part of the Barq project; see the Git
+history for details. The original Realm Inc. copyright headers are retained.
+
+The code is licensed under the Apache License 2.0. See `LICENSE` and `NOTICE`.
+
+Barq is an independent project and is not affiliated with, sponsored by, or
+endorsed by Realm, MongoDB, Inc., or MongoDB Atlas. "Realm", "MongoDB", and
+"MongoDB Atlas" are trademarks of MongoDB, Inc.
