@@ -1,0 +1,2 @@
+#cmakedefine01 BARQ_ENABLE_EXPERIMENTAL
+#cmakedefine01 BARQ_HAVE_UV

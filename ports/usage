@@ -1,0 +1,4 @@
+barq_native provides CMake targets:
+
+    find_package(barq_native CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE barq_native)

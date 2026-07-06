@@ -1,0 +1,79 @@
+#include <barq_native/internal/bridge/thread_safe_reference.hpp>
+#include <barq_native/internal/bridge/dictionary.hpp>
+#include <barq_native/internal/bridge/object.hpp>
+
+#include <barq/object-store/dictionary.hpp>
+#include <barq/object-store/object.hpp>
+#include <barq/object-store/thread_safe_reference.hpp>
+
+#include <memory>
+
+namespace barq::native::internal::bridge {
+    thread_safe_reference::thread_safe_reference() {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        new (&m_thread_safe_reference) ThreadSafeReference();
+#else
+        m_thread_safe_reference = std::make_shared<ThreadSafeReference>();
+#endif
+    }
+
+    thread_safe_reference::thread_safe_reference(thread_safe_reference&& other) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        new (&m_thread_safe_reference) ThreadSafeReference(std::move(*reinterpret_cast<ThreadSafeReference*>(&other.m_thread_safe_reference)));
+#else
+        m_thread_safe_reference = std::move(other.m_thread_safe_reference);
+#endif
+    }
+
+    thread_safe_reference& thread_safe_reference::operator=(thread_safe_reference&& other) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        if (this != &other) {
+            *reinterpret_cast<ThreadSafeReference*>(&m_thread_safe_reference) = std::move(*reinterpret_cast<ThreadSafeReference*>(&other.m_thread_safe_reference));
+        }
+#else
+        m_thread_safe_reference = other.m_thread_safe_reference;
+#endif
+        return *this;
+    }
+
+    thread_safe_reference::~thread_safe_reference() {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        reinterpret_cast<ThreadSafeReference*>(&m_thread_safe_reference)->~ThreadSafeReference();
+#endif
+    }
+    thread_safe_reference::thread_safe_reference(const object &o) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        new (&m_thread_safe_reference) ThreadSafeReference(static_cast<Object>(o));
+#else
+        m_thread_safe_reference = std::make_shared<ThreadSafeReference>(static_cast<Object>(o));
+#endif
+    }
+    thread_safe_reference::thread_safe_reference(ThreadSafeReference &&v) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        new (&m_thread_safe_reference) ThreadSafeReference(std::move(v));
+#else
+        m_thread_safe_reference = std::make_shared<ThreadSafeReference>(std::move(v));
+#endif
+    }
+    thread_safe_reference::operator bool() const {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return reinterpret_cast<const ThreadSafeReference*>(&m_thread_safe_reference)->operator bool();
+#else
+        return m_thread_safe_reference->operator bool();
+#endif
+    }
+    thread_safe_reference::operator ThreadSafeReference&&() {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return std::move(*reinterpret_cast<ThreadSafeReference*>(&m_thread_safe_reference));
+#else
+        return std::move(*m_thread_safe_reference);
+#endif
+    }
+    thread_safe_reference::thread_safe_reference(const dictionary &o) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        new (&m_thread_safe_reference) ThreadSafeReference(static_cast<Dictionary>(o));
+#else
+        m_thread_safe_reference = std::make_shared<ThreadSafeReference>(static_cast<Dictionary>(o));
+#endif
+    }
+}

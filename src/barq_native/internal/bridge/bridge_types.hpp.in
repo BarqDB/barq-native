@@ -1,0 +1,9 @@
+#pragma once
+
+#include <type_traits>
+
+#define BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+
+namespace barq::native::internal::bridge::storage {
+@BRIDGE_TYPE_DECLS@
+}

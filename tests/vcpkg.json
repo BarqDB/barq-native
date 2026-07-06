@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+      {
+        "name": "barq_native"
+      }
+    ]
+}

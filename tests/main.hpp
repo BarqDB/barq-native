@@ -1,0 +1,56 @@
+#ifndef BARQ_MAIN_HPP
+#define BARQ_MAIN_HPP
+
+#include <catch2/catch_all.hpp>
+#include <barq_native/sdk.hpp>
+
+#include <random>
+
+struct barq_path {
+    template<typename T = std::mt19937>
+    auto random_generator() -> T {
+        auto constexpr seed_bytes = sizeof(typename T::result_type) * T::state_size;
+        auto constexpr seed_len = seed_bytes / sizeof(std::seed_seq::result_type);
+        auto seed = std::array<std::seed_seq::result_type, seed_len>();
+        auto dev = std::random_device();
+        std::generate_n(begin(seed), seed_len, std::ref(dev));
+        auto seed_seq = std::seed_seq(begin(seed), end(seed));
+        return T{seed_seq};
+    }
+
+    auto gen_random(std::size_t len) -> std::string {
+        static constexpr auto chars =
+                "0123456789"
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                "abcdefghijklmnopqrstuvwxyz";
+        thread_local auto rng = random_generator<>();
+        auto dist = std::uniform_int_distribution{{}, std::strlen(chars) - 1};
+        auto result = std::string(len, '\0');
+        std::generate_n(begin(result), len, [&]() { return chars[dist(rng)]; });
+        return result;
+    }
+
+    std::string path = gen_random(32);
+    operator std::string() const {//NOLINT(google-explicit-constructor)
+        return path;
+    }
+    ~barq_path() { 
+        try {
+            path = std::filesystem::current_path().append(path).generic_string();
+            std::filesystem::remove_all(path + ".barq.management");
+            std::filesystem::remove_all(path + ".management");
+            std::filesystem::remove(path);
+            std::filesystem::remove(path + ".barq");
+            std::filesystem::remove(path + ".barq.lock");
+            std::filesystem::remove(path + ".lock");
+            std::filesystem::remove(path + ".barq.note");
+            std::filesystem::remove(path + ".note");
+        } catch (...) {
+
+        }
+    }
+};
+
+int main(int argc, char *argv[]);
+
+#endif//BARQ_MAIN_HPP

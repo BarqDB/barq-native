@@ -1,0 +1,27 @@
+{
+  "name": "barq_native",
+  "version": "2.2.0",
+  "description": "Barq C++ SDK for the Barq local-first database.",
+  "homepage": "https://github.com/barq/barq-native",
+  "license": "Apache-2.0",
+  "supports": "!emscripten",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
+    {
+      "name": "libuv",
+      "version>=": "1.43.0",
+      "platform": "!osx"
+    },
+    {
+      "name": "barq-core",
+      "version>=": "14.10.4"
+    }
+  ]
+}

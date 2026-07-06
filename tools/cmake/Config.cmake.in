@@ -1,0 +1,18 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+
+include(CMakeFindDependencyMacro)
+
+# on Apple platforms we use the built-in CFRunLoop
+# on WebAssembly we use an Emscripten-specific Scheduler and runloop
+# everywhere else it's libuv, except UWP where it doesn't build
+if(NOT APPLE AND NOT EMSCRIPTEN AND NOT WINDOWS_STORE AND NOT ANDROID)
+  set(BARQ_HAVE_UV 1)
+  find_package(libuv REQUIRED)
+  find_dependency(libuv)
+endif()
+
+find_dependency(Barq CONFIG REQUIRED)
+
+check_required_components(@PROJECT_NAME@)

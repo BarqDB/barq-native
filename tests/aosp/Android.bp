@@ -1,0 +1,7 @@
+cc_binary {
+    defaults: ["barq_consumer_defaults", "barq_defaults", "barq_cpp_defaults"],
+    name: "barq_integration_test",
+    srcs: ["main.cpp"],
+    static_libs: ["barq-native", "barq"],
+    vendor: true
+}
