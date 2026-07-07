@@ -10,6 +10,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/barq_native/version_numbers.hpp
 
 set(SOURCES
     barq_native/db.cpp
+    barq_native/sync.cpp
     barq_native/client_reset.cpp
     barq_native/managed_binary.cpp
     barq_native/managed_decimal.cpp
@@ -61,6 +62,7 @@ set(SOURCES
 set(HEADERS
     ../include/barq_native/accessors.hpp
     ../include/barq_native/db.hpp
+    ../include/barq_native/sync.hpp
     ../include/barq_native/client_reset.hpp
     ../include/barq_native/link.hpp
     ../include/barq_native/macros.hpp

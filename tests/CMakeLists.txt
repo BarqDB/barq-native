@@ -34,6 +34,7 @@ add_executable(barq_native_db_tests
                 db/barq_tests.cpp
                 db/results_tests.cpp
                 db/scheduler_tests.cpp
+                db/sync_tests.cpp
                 db/string_tests.cpp
                 db/performance_tests.cpp
                 db/numeric_tests.cpp

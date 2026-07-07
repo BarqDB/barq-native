@@ -32,6 +32,7 @@
 #include <barq_native/rbool.hpp>
 
 #include <barq_native/db.hpp>
+#include <barq_native/sync.hpp>
 #include <barq_native/client_reset.hpp>
 #include <barq_native/link.hpp>
 #include <barq_native/macros.hpp>
