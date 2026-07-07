@@ -268,11 +268,27 @@ sync_config sync_user::make_sync_config(std::string partition) const
     return sync_config(config);
 }
 
+sync_config sync_user::make_flexible_sync_config() const
+{
+    if (!m_impl->has_route()) {
+        throw std::logic_error("sync route must be set before making a sync config");
+    }
+    auto config = std::make_shared<::barq::SyncConfig>(m_impl, ::barq::SyncConfig::FLXSyncEnabled{});
+    return sync_config(config);
+}
+
 sync_config make_sync_config(const tenant_sync_config& config)
 {
     sync_user user(config.tenant_id, config.user_id, config.access_token);
     user.set_route(config.route, config.route_verified);
     return user.make_sync_config(config.partition);
+}
+
+sync_config make_flexible_sync_config(const flexible_sync_tenant_config& config)
+{
+    sync_user user(config.tenant_id, config.user_id, config.access_token);
+    user.set_route(config.route, config.route_verified);
+    return user.make_flexible_sync_config();
 }
 
 } // namespace barq::native

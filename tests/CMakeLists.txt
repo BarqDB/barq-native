@@ -72,4 +72,9 @@ endif()
 
 target_link_libraries(barq_native_db_tests PUBLIC ${BARQ_NATIVE_TARGET} Catch2::Catch2)
 
+if(TARGET Barq::SyncServer)
+    target_link_libraries(barq_native_db_tests PUBLIC Barq::SyncServer)
+    target_compile_definitions(barq_native_db_tests PRIVATE BARQ_NATIVE_HAVE_SYNC_SERVER_TESTS)
+endif()
+
 add_test(barq_native_tests barq_native_db_tests)

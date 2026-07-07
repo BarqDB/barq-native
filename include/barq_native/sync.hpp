@@ -36,6 +36,14 @@ namespace barq::native {
         bool route_verified = true;
     };
 
+    struct flexible_sync_tenant_config {
+        std::string tenant_id;
+        std::string user_id;
+        std::string route;
+        std::string access_token;
+        bool route_verified = true;
+    };
+
     class sync_user {
     public:
         using access_token_refresh_handler = std::function<std::string()>;
@@ -53,6 +61,7 @@ namespace barq::native {
         void mark_access_token_refresh_required();
 
         [[nodiscard]] sync_config make_sync_config(std::string partition) const;
+        [[nodiscard]] sync_config make_flexible_sync_config() const;
 
     private:
         struct Impl;
@@ -60,6 +69,7 @@ namespace barq::native {
     };
 
     [[nodiscard]] sync_config make_sync_config(const tenant_sync_config& config);
+    [[nodiscard]] sync_config make_flexible_sync_config(const flexible_sync_tenant_config& config);
 
 } // namespace barq::native
 
