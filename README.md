@@ -1,7 +1,18 @@
 # Barq Native
 
+[![License](https://img.shields.io/github/license/BarqDB/barq-native)](./LICENSE)
+![Status](https://img.shields.io/badge/status-alpha-f7c948)
+![C++](https://img.shields.io/badge/C%2B%2B-native-00599c)
+
 Barq Native is the C++ SDK for BarqDB. It builds on top of
 [barq-core](https://github.com/BarqDB/barq-core).
+
+## At A Glance
+
+- C++ object database SDK
+- Schema macros for typed models
+- Local database access backed by barq-core
+- Sync-facing types and bridge code
 
 ## Build
 
@@ -48,6 +59,13 @@ int main() {
     });
 }
 ```
+
+## Roadmap
+
+- Stabilize the public C++ SDK surface
+- Add more examples for local and synced databases
+- Publish prebuilt native artifacts
+- Keep the SDK aligned with barq-core releases
 
 ## License And Attribution
 
