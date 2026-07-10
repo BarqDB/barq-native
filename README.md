@@ -4,15 +4,13 @@
 ![Status](https://img.shields.io/badge/status-alpha-f7c948)
 ![C++](https://img.shields.io/badge/C%2B%2B-native-00599c)
 
-Barq Native is the C++ SDK for BarqDB. It builds on top of
-[barq-core](https://github.com/BarqDB/barq-core).
+The C++ SDK for [BarqDB](https://github.com/BarqDB) — a local-first database with real-time sync. Barq Native gives C++ apps a typed object database backed by [barq-core](https://github.com/BarqDB/barq-core).
 
-## At A Glance
+## Features
 
-- C++ object database SDK
-- Schema macros for typed models
-- Local database access backed by barq-core
-- Sync-facing types and bridge code
+- Typed C++ models via schema macros
+- Local reads and writes backed by barq-core
+- Sync-facing types bridged to the core sync client
 
 ## Build
 
@@ -21,18 +19,11 @@ cmake -S . -B build -DBARQ_NATIVE_NO_TESTS=ON
 cmake --build build --target barq_native
 ```
 
-By default, CMake fetches `https://github.com/BarqDB/barq-core.git`.
-
-To force a specific core source:
+By default CMake fetches barq-core from `https://github.com/BarqDB/barq-core.git`. To build against a local checkout or a pinned revision instead:
 
 ```sh
-cmake -S . -B build -DBARQ_CORE_SOURCE_DIR=/path/to/barq-core
-```
-
-To force a git revision:
-
-```sh
-cmake -S . -B build -DBARQ_CORE_GIT_TAG=main
+cmake -S . -B build -DBARQ_CORE_SOURCE_DIR=/path/to/barq-core   # local source
+cmake -S . -B build -DBARQ_CORE_GIT_TAG=v20.1.6                 # pinned core release
 ```
 
 ## Use
@@ -60,22 +51,8 @@ int main() {
 }
 ```
 
-## Roadmap
+## License and attribution
 
-- Stabilize the public C++ SDK surface
-- Add more examples for local and synced databases
-- Publish prebuilt native artifacts
-- Keep the SDK aligned with barq-core releases
+Barq Native is a modified fork of the [Realm C++ SDK](https://github.com/realm/realm-cpp), licensed under the [Apache License 2.0](./LICENSE). The original Realm Inc. copyright headers are retained in every file they came from; see the Git history for what changed. Fork and third-party notices are in [`NOTICE`](./NOTICE).
 
-## License And Attribution
-
-Barq Native is a modified fork of the
-[Realm C++ SDK](https://github.com/realm/realm-cpp). The source files have been
-changed from their original form as part of the Barq project; see the Git
-history for details. The original Realm Inc. copyright headers are retained.
-
-The code is licensed under the Apache License 2.0. See `LICENSE` and `NOTICE`.
-
-Barq is an independent project and is not affiliated with, sponsored by, or
-endorsed by Realm, MongoDB, Inc., or MongoDB Atlas. "Realm", "MongoDB", and
-"MongoDB Atlas" are trademarks of MongoDB, Inc.
+Barq is an independent project. It is not affiliated with, sponsored by, or endorsed by Realm, MongoDB, Inc., or MongoDB Atlas. "Realm", "MongoDB", and "MongoDB Atlas" are trademarks of MongoDB, Inc.
