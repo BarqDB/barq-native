@@ -25,6 +25,7 @@
 #include <barq_native/version_numbers.hpp>
 #endif
 
+#include <cstdint>
 #include <optional>
 #include <map>
 #include <string>

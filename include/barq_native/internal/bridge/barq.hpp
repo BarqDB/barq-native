@@ -21,6 +21,7 @@
 
 #include <barq_native/internal/bridge/utils.hpp>
 
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -203,7 +204,7 @@ namespace barq::native::internal::bridge {
             /// This mode is used for opening a synced barq with a local barq config in the scenario
             /// that you do not have a valid sync user object.
             void enable_forced_sync_history();
-            std::optional<schema> get_schema();
+            std::optional<struct schema> get_schema();
 
             template<typename T>
             void set_client_reset_handler(const client_reset_mode_base<T>& handler) {
