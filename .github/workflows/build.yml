@@ -4,12 +4,29 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+            cmake_args: -A x64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
+
+      # barq-core is pulled in via FetchContent and has deep source paths;
+      # without long-path support the Windows checkout can trip MAX_PATH.
+      - name: Enable Git long paths (Windows)
+        if: runner.os == 'Windows'
+        run: git config --global core.longpaths true
 
       - name: Resolve latest barq-core release tag
         id: core
@@ -26,6 +43,9 @@ jobs:
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
           echo "Building barq-native $GITHUB_REF_NAME against barq-core $ref"
 
+      # On Windows the Visual Studio generator is multi-config, so the build
+      # type is selected at build time (--config) rather than here. -A x64 is
+      # required so barq-core fetches its x64-windows-static prebuilt deps.
       - name: Configure
         env:
           CORE_REF: ${{ steps.core.outputs.ref }}
@@ -34,6 +54,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
           -DBARQ_NATIVE_NO_TESTS=ON
           -DBARQ_CORE_GIT_TAG="$CORE_REF"
+          ${{ matrix.cmake_args }}
 
       - name: Build
-        run: cmake --build build --target barq_native --parallel
+        run: cmake --build build --config Release --target barq_native --parallel
