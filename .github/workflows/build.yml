@@ -1,0 +1,39 @@
+name: build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve latest barq-core release tag
+        id: core
+        run: |
+          tag=$(git ls-remote --tags --refs --sort=-v:refname \
+                  https://github.com/BarqDB/barq-core.git 'v*' \
+                | head -n1 | sed 's#.*/##')
+          ref="${tag:-main}"
+          # only accept a version tag or the literal "main"
+          case "$ref" in
+            v[0-9]*|main) ;;
+            *) echo "unexpected core ref: $ref" >&2; exit 1 ;;
+          esac
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "Building barq-native $GITHUB_REF_NAME against barq-core $ref"
+
+      - name: Configure
+        env:
+          CORE_REF: ${{ steps.core.outputs.ref }}
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DBARQ_NATIVE_NO_TESTS=ON
+          -DBARQ_CORE_GIT_TAG="$CORE_REF"
+
+      - name: Build
+        run: cmake --build build --target barq_native --parallel
