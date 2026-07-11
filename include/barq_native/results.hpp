@@ -27,6 +27,7 @@
 #include <barq_native/notifications.hpp>
 #include <barq_native/schema.hpp>
 #include <barq_native/rbool.hpp>
+#include <barq_native/vector.hpp>
 
 namespace barq::native {
     struct mutable_sync_subscription_set;
@@ -88,6 +89,21 @@ namespace barq::native {
             auto query_object = managed<T>::prepare_for_query(barq, &query);
             auto full_query = fn(query_object).q;
             return Derived(internal::bridge::results(m_parent.get_barq(), full_query));
+        }
+
+        // k-nearest-neighbour search on a vector-indexed property, e.g.
+        //   db.objects<Document>().knn(&Document::embedding, query_vec,
+        //                              knn_options::approximate(10));
+        // Returns a result set of the k nearest objects ordered closest first.
+        // The property must carry a persisted vector index; otherwise this throws.
+        template <typename PropertyType>
+        Derived knn(PropertyType T::* ptr, const std::vector<float>& query_vector,
+                    const knn_options& options) {
+            static_assert(sizeof(managed<T>), "Must declare schema for T");
+            auto property_name = managed<T>::schema.name_for_property(ptr);
+            auto column_key = m_parent.get_table().get_column_key(property_name);
+            return Derived(m_parent.knn(column_key, query_vector,
+                                        options.k(), options.ef(), options.is_exact()));
         }
 
         struct results_callback_wrapper : internal::bridge::collection_change_callback {

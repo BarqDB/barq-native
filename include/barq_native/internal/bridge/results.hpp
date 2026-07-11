@@ -20,6 +20,7 @@
 #define BARQ_NATIVE_BRIDGE_RESULTS_HPP
 
 #include <cstddef>
+#include <vector>
 #include <barq_native/internal/bridge/obj.hpp>
 #include <barq_native/internal/bridge/utils.hpp>
 
@@ -58,6 +59,12 @@ namespace barq::native::internal::bridge {
         [[nodiscard]] table get_table() const;
         results(const barq&, const query&);
         results sort(const std::vector<sort_descriptor>&);
+        // k-nearest-neighbour search over a vector-indexed list-of-float column.
+        // Returns the k nearest rows ordered closest first. `ef` is the search
+        // beam width (0 = auto); when `exact` is true it is a brute-force scan.
+        // Throws if the column has no vector index.
+        results knn(const col_key& column, const std::vector<float>& query_vector,
+                    size_t k, size_t ef, bool exact);
         notification_token add_notification_callback(std::shared_ptr<collection_change_callback>&&);
     private:
         template <typename T>

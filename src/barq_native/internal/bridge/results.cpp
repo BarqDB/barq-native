@@ -117,6 +117,15 @@ namespace barq::native::internal::bridge {
 #endif
     }
 
+    results results::knn(const col_key& column, const std::vector<float>& query_vector,
+                         size_t k, size_t ef, bool exact) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return reinterpret_cast<Results*>(&m_results)->knn_search(column, query_vector, k, ef, exact);
+#else
+        return m_results->knn_search(column, query_vector, k, ef, exact);
+#endif
+    }
+
     template <>
     obj get(results& res, size_t v) {
 #ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
