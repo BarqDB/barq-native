@@ -193,6 +193,7 @@ namespace barq::native::internal::bridge {
             void set_path(const std::string&);
             void set_schema(const std::vector<object_schema>&);
             void set_schema_mode(schema_mode);
+            [[nodiscard]] schema_mode get_schema_mode() const;
             void set_scheduler(const std::shared_ptr<struct scheduler>&);
             void set_sync_config(const std::optional<struct sync_config>&);
             void set_custom_http_headers(const std::map<std::string, std::string>& headers);

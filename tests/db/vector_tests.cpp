@@ -130,3 +130,33 @@ TEST_CASE("knn search", "[vector]") {
         CHECK(nearest[0]._id == 3);
     }
 }
+
+// A read-only / immutable open cannot write, so reconcile must be skipped rather
+// than crash. The index built on the earlier writable open answers knn queries.
+TEST_CASE("knn on a read-only open", "[vector]") {
+    barq_path path;
+
+    {
+        barq::native::db_config config;
+        config.set_path(path);
+        auto barq = db(config);
+        barq.write([&barq] {
+            auto d = VectorDoc();
+            d._id = 1;
+            d.embedding = {1.0f, 0.0f, 0.0f, 0.0f};
+            return barq.add(std::move(d));
+        });
+    }
+
+    barq::native::db_config config;
+    config.set_path(path);
+    config.set_schema_mode(barq::native::db_config::schema_mode::immutable);
+    auto barq = db(config); // must not attempt a write during reconcile
+
+    auto nearest = barq.objects<VectorDoc>().knn(
+        &VectorDoc::embedding,
+        std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+        knn_options::approximate(1));
+    REQUIRE(nearest.size() == 1);
+    CHECK(nearest[0]._id == 1);
+}

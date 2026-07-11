@@ -202,6 +202,10 @@ namespace barq::native::internal::bridge {
         }
         get_config()->schema = v2;
     }
+    barq::config::schema_mode barq::config::get_schema_mode() const {
+        return static_cast<schema_mode>(get_config()->schema_mode);
+    }
+
     void barq::config::set_schema_mode(schema_mode mode) {
         get_config()->schema_mode = static_cast<::barq::SchemaMode>(mode);
     }

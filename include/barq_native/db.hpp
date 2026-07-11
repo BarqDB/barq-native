@@ -75,8 +75,15 @@ namespace barq::native {
         {
             if (!config.get_schema())
                 config.set_schema(db::schemas);
+            auto mode = config.get_schema_mode();
             m_barq = internal::bridge::barq(config);
-            reconcile_vector_indexes();
+            // Building a vector index writes to the file. Skip reconcile on opens
+            // that cannot write — an immutable, read-only, or frozen barq relies
+            // on the index already being present from an earlier writable open.
+            bool writable = mode != db_config::schema_mode::immutable &&
+                            mode != db_config::schema_mode::read_only && !m_barq.is_frozen();
+            if (writable)
+                reconcile_vector_indexes();
         }
 
         // Registered from BARQ_SCHEMA for every declared object type.
