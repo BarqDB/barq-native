@@ -24,7 +24,12 @@ endif()
 
 include(FetchContent)
 set(BARQ_CORE_GIT_REPOSITORY "https://github.com/BarqDB/barq-core.git" CACHE STRING "Barq Core git repository")
-set(BARQ_CORE_GIT_TAG "main" CACHE STRING "Barq Core git ref")
+# Pinned to the exact barq-core revision this SDK is built and tested against —
+# the one carrying the vector (knn) search work and the stale vector-index
+# accessor fix — so fetch-based builds are reproducible instead of tracking a
+# moving `main`. Bump deliberately when barq-core advances. Local development can
+# point at a working tree instead with -DBARQ_CORE_SOURCE_DIR=/path/to/barq-core.
+set(BARQ_CORE_GIT_TAG "8e788c45207e7753789a7371d80121c6b613a5d9" CACHE STRING "Barq Core git ref")
 set(BARQ_CORE_SOURCE_DIR "" CACHE PATH "Optional local Barq Core checkout")
 
 if(BARQ_CORE_SOURCE_DIR)
