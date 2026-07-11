@@ -91,21 +91,6 @@ namespace barq::native {
             return Derived(internal::bridge::results(m_parent.get_barq(), full_query));
         }
 
-        // k-nearest-neighbour search on a vector-indexed property, e.g.
-        //   db.objects<Document>().knn(&Document::embedding, query_vec,
-        //                              knn_options::approximate(10));
-        // Returns a result set of the k nearest objects ordered closest first.
-        // The property must carry a persisted vector index; otherwise this throws.
-        template <typename PropertyType>
-        Derived knn(PropertyType T::* ptr, const std::vector<float>& query_vector,
-                    const knn_options& options) {
-            static_assert(sizeof(managed<T>), "Must declare schema for T");
-            auto property_name = managed<T>::schema.name_for_property(ptr);
-            auto column_key = m_parent.get_table().get_column_key(property_name);
-            return Derived(m_parent.knn(column_key, query_vector,
-                                        options.k(), options.ef(), options.is_exact()));
-        }
-
         struct results_callback_wrapper : internal::bridge::collection_change_callback {
             explicit results_callback_wrapper(std::function<void(results_change)>&& fn,
                                               Derived *c,
@@ -375,6 +360,20 @@ namespace barq::native {
             if (index >= this->m_parent.size())
                 throw std::out_of_range("Index out of range.");
             return managed<T, void>(internal::bridge::get<internal::bridge::obj>(this->m_parent, index), this->m_parent.get_barq());
+        }
+
+        // k-nearest-neighbour search on a vector-indexed property, e.g.
+        //   db.objects<Document>().knn(&Document::embedding, query_vec,
+        //                              knn_options::approximate(10));
+        // Returns the k nearest objects ordered closest first. The property must
+        // carry a persisted vector index; otherwise this throws.
+        template <typename PropertyType>
+        Derived knn(PropertyType T::* ptr, const std::vector<float>& query_vector,
+                    const knn_options& options) {
+            auto property_name = managed<T>::schema.name_for_property(ptr);
+            auto column_key = this->m_parent.get_table().get_column_key(property_name);
+            return Derived(this->m_parent.knn(column_key, query_vector,
+                                              options.k(), options.ef(), options.is_exact()));
         }
 
         class iterator {
