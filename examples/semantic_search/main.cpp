@@ -48,7 +48,7 @@ const std::vector<Seed> corpus = {
     {7, "Sourdough starter, step by step", {0.0f, 0.05f, 0.95f, 0.0f}},
 };
 
-void print_ranked(const std::string& query_label, results<Document>& hits) {
+void print_ranked(const char* query_label, results<Document>& hits) {
     std::cout << "  query: \"" << query_label << "\"\n";
     for (size_t i = 0; i < hits.size(); ++i) {
         auto doc = hits[i];

@@ -32,7 +32,9 @@
 
 #include <filesystem>
 #include <optional>
+#include <ostream>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace barq::native {
@@ -298,10 +300,34 @@ namespace barq::native {
         return open<Ts...>(db_config(path, scheduler));
     }
 
-    template <typename T>
+    namespace internal {
+        // `managed<T>::is_object` is only readable once `managed<T>` is a
+        // complete type. For a non-object `T` (e.g. `char`) the primary
+        // template is merely declared, so probe completeness first — otherwise
+        // touching `::is_object` is a hard error instead of a clean SFINAE drop.
+        template <typename T, typename = void>
+        struct is_managed_defined : std::false_type {};
+        template <typename T>
+        struct is_managed_defined<T, std::void_t<decltype(sizeof(managed<T>))>> : std::true_type {};
+
+        // True only for a Barq schema object type (one declared with
+        // BARQ_SCHEMA/BARQ_EMBEDDED_SCHEMA/...), never for `char`, numbers, etc.
+        template <typename T, bool = is_managed_defined<T>::value>
+        struct is_barq_object : std::false_type {};
+        template <typename T>
+        struct is_barq_object<T, true> : std::bool_constant<managed<T>::is_object> {};
+    }
+
+    // Debug-print a link as `link:<address>`. Constrained to pointers to Barq
+    // schema objects so it can't hijack `std::cout << some_const_char_ptr;`
+    // (which is ambiguous with the standard `const char*` overload) when a
+    // `using namespace barq::native;` is in scope.
+    template <typename T, std::enable_if_t<internal::is_barq_object<T>::value, int> = 0>
     inline std::ostream& operator<< (std::ostream& stream, const T*& object)
     {
-        stream << "link:" << object << std::endl;
+        // Print the address via `const void*`. Streaming `object` (a `const T*`)
+        // directly would re-select this same operator and recurse forever.
+        stream << "link:" << static_cast<const void*>(object) << std::endl;
         return stream;
     }
 }
