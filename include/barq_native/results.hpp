@@ -132,7 +132,11 @@ namespace barq::native {
         };
 
         barq::native::notification_token observe(std::function<void(results_change)>&& handler) {
-            auto r = std::make_shared<internal::bridge::results>(m_parent.get_barq(), m_parent.get_barq().table_for_object_type(managed<T>::schema.name));
+            // Observe a copy of these results, so any filter and sort/knn
+            // ordering is preserved: a knn result set then reports live moves as
+            // objects change and their distance rank shifts, not whole-table
+            // churn.
+            auto r = std::make_shared<internal::bridge::results>(m_parent);
             barq::native::notification_token token = r->add_notification_callback(std::make_shared<results_callback_wrapper>(std::move(handler), static_cast<Derived*>(this)));
             token.m_barq = r->get_barq();
             token.m_results = r;
@@ -140,13 +144,13 @@ namespace barq::native {
         }
 
         Derived freeze() {
-            auto frozen_barq = m_parent.get_barq().freeze();
-            return Derived(internal::bridge::results(frozen_barq, frozen_barq.table_for_object_type(managed<T>::schema.name)));
+            // Freeze the result set itself, keeping its query and ordering,
+            // rather than rebuilding an unfiltered table view in the frozen barq.
+            return Derived(m_parent.freeze(m_parent.get_barq().freeze()));
         }
 
         Derived thaw() {
-            auto thawed_barq = m_parent.get_barq().thaw();
-            return Derived(internal::bridge::results(thawed_barq, thawed_barq.table_for_object_type(managed<T>::schema.name)));
+            return Derived(m_parent.freeze(m_parent.get_barq().thaw()));
         }
 
         bool is_frozen() {

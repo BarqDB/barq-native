@@ -65,6 +65,9 @@ namespace barq::native::internal::bridge {
         // Throws if the column has no vector index.
         results knn(const col_key& column, const std::vector<float>& query_vector,
                     size_t k, size_t ef, bool exact);
+        // Import these results (query + sort/knn ordering intact) into another
+        // barq version — a frozen one to snapshot, a live one to thaw.
+        results freeze(const barq& target);
         notification_token add_notification_callback(std::shared_ptr<collection_change_callback>&&);
     private:
         template <typename T>

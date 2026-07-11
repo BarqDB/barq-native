@@ -126,6 +126,14 @@ namespace barq::native::internal::bridge {
 #endif
     }
 
+    results results::freeze(const barq& target) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return reinterpret_cast<Results*>(&m_results)->freeze(target);
+#else
+        return m_results->freeze(target);
+#endif
+    }
+
     template <>
     obj get(results& res, size_t v) {
 #ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES

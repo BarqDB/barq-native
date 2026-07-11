@@ -160,3 +160,62 @@ TEST_CASE("knn on a read-only open", "[vector]") {
     REQUIRE(nearest.size() == 1);
     CHECK(nearest[0]._id == 1);
 }
+
+// A knn result set is live: observing it reports changes as the nearest set
+// shifts, and a frozen copy keeps the knn order and stops tracking the db.
+TEST_CASE("live and frozen knn results", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    barq.write([&barq] {
+        auto add_vec = [&](int64_t id, std::vector<float> v) {
+            auto d = VectorDoc();
+            d._id = id;
+            d.embedding = std::move(v);
+            barq.add(std::move(d));
+        };
+        add_vec(1, {1.0f, 0.0f, 0.0f, 0.0f});
+        add_vec(2, {0.9f, 0.1f, 0.0f, 0.0f});
+        add_vec(3, {0.0f, 1.0f, 0.0f, 0.0f});
+    });
+
+    auto near = barq.objects<VectorDoc>().knn(
+        &VectorDoc::embedding,
+        std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+        knn_options::approximate(2));
+
+    SECTION("observe fires when the nearest object is removed") {
+        int calls = 0;
+        auto token = near.observe([&calls](auto&&) { calls++; });
+        barq.refresh(); // initial notification
+
+        barq.write([&barq] {
+            auto r = barq.objects<VectorDoc>().where([](auto&& d) { return d._id == 1; });
+            auto o = r[0];
+            barq.remove(o);
+        });
+        barq.refresh(); // change notification
+
+        CHECK(calls == 2);
+        CHECK(near.size() == 2); // still the two nearest, now ids 2 and 3
+    }
+
+    SECTION("a frozen knn result keeps its order and stops tracking the db") {
+        auto frozen = near.freeze();
+        REQUIRE(frozen.size() == 2);
+        CHECK(frozen[0]._id == 1); // closest first
+        CHECK(frozen[1]._id == 2);
+
+        barq.write([&barq] {
+            auto r = barq.objects<VectorDoc>().where([](auto&& d) { return d._id == 1; });
+            auto o = r[0];
+            barq.remove(o);
+        });
+
+        // The live set moved on; the frozen snapshot did not.
+        CHECK(frozen.size() == 2);
+        CHECK(frozen[0]._id == 1);
+    }
+}
