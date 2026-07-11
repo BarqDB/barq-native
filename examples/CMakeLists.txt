@@ -1,1 +1,2 @@
 add_subdirectory(semantic_search)
+add_subdirectory(task_manager)
