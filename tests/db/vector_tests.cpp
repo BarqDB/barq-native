@@ -1,6 +1,8 @@
 #include "../main.hpp"
 #include "test_objects.hpp"
 
+#include <barq_native/client_reset.hpp>
+
 using namespace barq::native;
 
 namespace barq::native {
@@ -218,4 +220,19 @@ TEST_CASE("live and frozen knn results", "[vector]") {
         CHECK(frozen.size() == 2);
         CHECK(frozen[0]._id == 1);
     }
+}
+
+// The vector index is local, so a client reset (which discards local state)
+// rebuilds it via the after-reset handler. Compile-only: instantiating
+// set_client_reset_handler<db> is what guards the reconcile-in-wrapper code;
+// actually installing/triggering a reset needs a sync config and server (the
+// sync suite), and installing it on a plain config would fault.
+TEST_CASE("client reset handler for the local vector index compiles", "[vector]") {
+    auto wire = [] {
+        barq::native::db_config config;
+        config.set_client_reset_handler(
+            barq::native::client_reset::discard_unsynced_changes([](db) {}, [](db, db) {}));
+    };
+    (void)wire; // instantiated at compile time, never invoked
+    SUCCEED("client reset handler wiring compiles");
 }

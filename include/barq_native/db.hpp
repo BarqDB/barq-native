@@ -162,11 +162,19 @@ namespace barq::native {
             }
         }
 
-    private:
+    public:
+        // Rebuild any missing local vector (knn) indexes. Runs automatically at
+        // open and after a client reset — both leave the local-only index absent.
+        // Idempotent: an index already on disk is left untouched. A no-op on a
+        // non-writable barq, since it cannot create one anyway.
         void reconcile_vector_indexes() {
+            if (m_barq.is_frozen())
+                return;
             for (auto reconciler : vector_index_reconcilers)
                 reconciler(*this);
         }
+
+    private:
 
         // For one property: if it is vector_indexed and its index is not yet on
         // disk, record the column and the config to build.

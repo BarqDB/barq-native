@@ -213,7 +213,12 @@ namespace barq::native::internal::bridge {
                     fn(local_barq.freeze());
                 });
                 after_client_reset([fn = std::move(handler.m_after)](barq local_barq, barq remote_barq) {
-                    fn(local_barq.freeze(), remote_barq);
+                    // The vector (knn) index is local-only, so a client reset
+                    // discards it along with the rest of the local state. Rebuild
+                    // it on the fresh realm before handing control back.
+                    T remote(remote_barq);
+                    remote.reconcile_vector_indexes();
+                    fn(local_barq.freeze(), std::move(remote));
                 });
                 set_client_reset_mode(handler.m_mode);
             }
