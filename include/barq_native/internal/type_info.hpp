@@ -30,6 +30,7 @@
 #include <barq_native/internal/bridge/object_id.hpp>
 #include <barq_native/internal/bridge/decimal128.hpp>
 #include <barq_native/internal/bridge/set.hpp>
+#include <barq_native/internal/bridge/vector_index.hpp>
 
 #include <map>
 #include <vector>
@@ -43,6 +44,8 @@ namespace barq::native {
     struct indexed;
     template <typename>
     struct fulltext;
+    template <size_t Dims, internal::bridge::vector_metric Metric, internal::bridge::vector_encoding Encoding>
+    struct vector_indexed;
 }
 namespace barq::native::internal::type_info {
     template <typename T, typename = void>
@@ -369,6 +372,33 @@ namespace barq::native::internal::type_info {
     template <typename T>
     struct remove_index<fulltext<T>> {
         using type = T;
+    };
+
+    // A property carrying a persisted vector (knn) index, declared as
+    // `vector_indexed<Dims, metric, encoding>`. For storage it behaves exactly
+    // like a list of floats: the same internal type and the Float|Array column
+    // type. The index itself is not a column flag; it is created out of band
+    // once the schema is applied (see the vector-index reconcile step).
+    template <typename T>
+    struct is_vector_indexed : std::false_type {
+        static constexpr auto value = false;
+    };
+    template <size_t Dims, bridge::vector_metric Metric, bridge::vector_encoding Encoding>
+    struct is_vector_indexed<vector_indexed<Dims, Metric, Encoding>> : std::true_type {
+        static constexpr auto value = true;
+    };
+
+    template <size_t Dims, bridge::vector_metric Metric, bridge::vector_encoding Encoding>
+    struct type_info<vector_indexed<Dims, Metric, Encoding>> {
+        using internal_type = bridge::list;
+        static constexpr auto type() {
+            return type_info<float>::type() | bridge::property::type::Array;
+        }
+    };
+
+    template <size_t Dims, bridge::vector_metric Metric, bridge::vector_encoding Encoding>
+    struct remove_index<vector_indexed<Dims, Metric, Encoding>> {
+        using type = std::vector<float>;
     };
 
 }

@@ -20,8 +20,51 @@
 #define BARQ_NATIVE_VECTOR_HPP
 
 #include <cstddef>
+#include <initializer_list>
+#include <utility>
+#include <vector>
+
+#include <barq_native/internal/bridge/vector_index.hpp>
 
 namespace barq::native {
+
+    // The distance metric and on-disk encoding a vector index is built with.
+    // These name the same choices as the bridge/core enums; the SDK just
+    // re-exports them so users write barq::native::vector_metric::cosine.
+    using internal::bridge::vector_metric;
+    using internal::bridge::vector_encoding;
+
+    // Declares a property as a float embedding with a persisted vector (knn)
+    // index, e.g. `vector_indexed<768, vector_metric::cosine> embedding;`.
+    //
+    // The dimension count is required and enforced. Cosine is the SDK default
+    // because it is what most text/image embeddings expect. Storage is a plain
+    // list of floats; the property is assigned and read as a whole vector (the
+    // wrapper deliberately does not expose element-level mutation, since a
+    // half-updated embedding is meaningless).
+    template <size_t Dims,
+              vector_metric Metric = vector_metric::cosine,
+              vector_encoding Encoding = vector_encoding::float32>
+    struct vector_indexed {
+        static_assert(Dims > 0, "vector_indexed<> must declare a positive dimension count");
+
+        static constexpr size_t dimensions = Dims;
+        static constexpr vector_metric metric = Metric;
+        static constexpr vector_encoding encoding = Encoding;
+        using value_type = float;
+
+        vector_indexed() = default;
+        vector_indexed(std::vector<float> v) // NOLINT(google-explicit-constructor)
+            : value(std::move(v)) {}
+        vector_indexed(std::initializer_list<float> v) // NOLINT(google-explicit-constructor)
+            : value(v) {}
+        // Assignment is via the converting constructors above plus the implicit
+        // copy/move assignment; a dedicated operator=(std::vector<float>) would
+        // make `embedding = {1, 2, 3}` ambiguous with the initializer_list ctor.
+        operator const std::vector<float>&() const { return value; } // NOLINT(google-explicit-constructor)
+
+        std::vector<float> value;
+    };
 
     // Options for a k-nearest-neighbour (knn) vector search. A search is either
     // approximate or exact, never both, so the only way to build one is through
