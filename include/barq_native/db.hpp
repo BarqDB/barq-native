@@ -72,17 +72,26 @@ namespace barq::native {
 
         void begin_write() const { m_barq.begin_transaction(); }
         void commit_write() const { m_barq.commit_transaction(); }
+        void cancel_write() const { m_barq.cancel_transaction(); }
 
+        // Runs `fn` inside a write transaction. If `fn` throws, the transaction
+        // is rolled back before the exception propagates, so a failed write
+        // never leaves the barq stuck in an open transaction.
         template <typename Fn>
         std::invoke_result_t<Fn> write(Fn&& fn) const {
             begin_write();
-            if constexpr (!std::is_void_v<std::invoke_result_t<Fn>>) {
-                auto val = fn();
-                commit_write();
-                return val;
-            } else {
-                fn();
-                commit_write();
+            try {
+                if constexpr (!std::is_void_v<std::invoke_result_t<Fn>>) {
+                    auto val = fn();
+                    commit_write();
+                    return val;
+                } else {
+                    fn();
+                    commit_write();
+                }
+            } catch (...) {
+                cancel_write();
+                throw;
             }
         }
         template <typename U>

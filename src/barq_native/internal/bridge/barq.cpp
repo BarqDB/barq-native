@@ -68,6 +68,10 @@ namespace barq::native::internal::bridge {
         m_barq->commit_transaction();
     }
 
+    void barq::cancel_transaction() const {
+        m_barq->cancel_transaction();
+    }
+
     barq::barq(thread_safe_reference&& tsr, const std::optional<std::shared_ptr<struct scheduler>>& s) {
         if (s) {
             m_barq = Barq::get_shared_barq(std::move(tsr), create_scheduler_shim(*s));

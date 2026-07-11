@@ -40,6 +40,7 @@ add_executable(barq_native_db_tests
                 db/numeric_tests.cpp
                 db/float_tests.cpp
                 db/vector_tests.cpp
+                db/write_tests.cpp
                 db/set_tests.cpp
                 db/frozen_tests.cpp
                 db/index_tests.cpp

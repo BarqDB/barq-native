@@ -240,6 +240,7 @@ namespace barq::native::internal::bridge {
         [[nodiscard]] struct schema schema() const;
         void begin_transaction() const;
         void commit_transaction() const;
+        void cancel_transaction() const;
         table table_for_object_type(const std::string& object_type);
         table get_table(const uint32_t &);
         [[nodiscard]] std::shared_ptr<struct scheduler> scheduler() const;
