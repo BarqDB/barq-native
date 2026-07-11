@@ -222,6 +222,102 @@ TEST_CASE("live and frozen knn results", "[vector]") {
     }
 }
 
+// Editing an object's embedding re-ranks it in later knn queries.
+TEST_CASE("editing an embedding updates knn", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    auto m2 = barq.write([&barq] {
+        auto add = [&](int64_t id, std::vector<float> v) {
+            auto d = VectorDoc();
+            d._id = id;
+            d.embedding = std::move(v);
+            return barq.add(std::move(d));
+        };
+        add(1, {0.9f, 0.1f, 0.0f, 0.0f}); // close to the query
+        return add(2, {0.0f, 1.0f, 0.0f, 0.0f}); // far
+    });
+
+    auto query = std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f};
+    CHECK(barq.objects<VectorDoc>()
+              .knn(&VectorDoc::embedding, query, knn_options::approximate(1))[0]
+              ._id == 1);
+
+    barq.write([&m2] {
+        m2.embedding = std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f}; // now the exact match
+    });
+
+    CHECK(barq.objects<VectorDoc>()
+              .knn(&VectorDoc::embedding, query, knn_options::approximate(1))[0]
+              ._id == 2);
+}
+
+// knn composes with a query filter: it ranks only the objects that pass.
+TEST_CASE("knn within a filtered subset", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    barq.write([&barq] {
+        auto add = [&](int64_t id, std::vector<float> v) {
+            auto d = VectorDoc();
+            d._id = id;
+            d.embedding = std::move(v);
+            barq.add(std::move(d));
+        };
+        add(1, {1.0f, 0.0f, 0.0f, 0.0f}); // exact match, but filtered out below
+        add(2, {0.9f, 0.1f, 0.0f, 0.0f});
+        add(3, {0.0f, 1.0f, 0.0f, 0.0f});
+    });
+
+    auto near = barq.objects<VectorDoc>()
+                    .where([](auto&& d) { return d._id > 1; })
+                    .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+                         knn_options::approximate(2));
+
+    REQUIRE(near.size() == 2);
+    CHECK(near[0]._id == 2); // nearest among the filtered set (id 1 excluded)
+    CHECK(near[1]._id == 3);
+}
+
+// The declared dimension count is enforced on queries: a query vector whose
+// length does not match the index is rejected rather than answered wrongly.
+TEST_CASE("a wrong-dimension query is rejected", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    barq.write([&barq] {
+        auto d = VectorDoc();
+        d._id = 1;
+        d.embedding = {1.0f, 0.0f, 0.0f, 0.0f};
+        return barq.add(std::move(d));
+    });
+
+    // The index is 4-dimensional (vector_indexed<4>); a 3-dim query is rejected.
+    bool rejected = false;
+    try {
+        (void)barq.objects<VectorDoc>()
+            .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f},
+                 knn_options::approximate(1))
+            .size();
+    }
+    catch (...) {
+        rejected = true;
+    }
+    CHECK(rejected);
+
+    // The matching 4-dim query still works.
+    CHECK(barq.objects<VectorDoc>()
+              .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+                   knn_options::approximate(1))
+              .size() == 1);
+}
+
 // The vector index is local, so a client reset (which discards local state)
 // rebuilds it via the after-reset handler. Compile-only: instantiating
 // set_client_reset_handler<db> is what guards the reconcile-in-wrapper code;
