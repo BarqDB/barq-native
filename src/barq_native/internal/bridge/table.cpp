@@ -7,6 +7,9 @@
 #include <barq/mixed.hpp>
 #include <barq/table.hpp>
 #include <barq/table_view.hpp>
+#include <barq/index_vector.hpp>
+
+#include <stdexcept>
 
 namespace barq::native::internal::bridge {
 
@@ -146,6 +149,47 @@ namespace barq::native::internal::bridge {
     }
     obj table::get_object(const obj_key &key) const {
         return static_cast<TableRef>(*this)->get_object(key);
+    }
+
+    static ::barq::VectorIndexConfig to_core_vector_config(const vector_index_config& config) {
+        ::barq::VectorIndexConfig core_config;
+        core_config.metric = static_cast<::barq::VectorMetric>(static_cast<uint8_t>(config.metric));
+        core_config.encoding = static_cast<::barq::VectorEncoding>(static_cast<uint8_t>(config.encoding));
+        core_config.dimensions = config.dimensions;
+        core_config.m = config.m;
+        core_config.ef_construction = config.ef_construction;
+        core_config.ef_search = config.ef_search;
+        core_config.build_threads = config.build_threads;
+        return core_config;
+    }
+
+    void table::add_vector_index(const col_key& col_key, const vector_index_config& config) const {
+        static_cast<TableRef>(*this)->add_vector_index(col_key, to_core_vector_config(config));
+    }
+    void table::add_vector_index(const col_key& col_key) const {
+        static_cast<TableRef>(*this)->add_vector_index(col_key);
+    }
+    void table::remove_vector_index(const col_key& col_key) const {
+        static_cast<TableRef>(*this)->remove_vector_index(col_key);
+    }
+    bool table::has_vector_index(const col_key& col_key) const {
+        return static_cast<TableRef>(*this)->has_vector_index(col_key);
+    }
+    vector_index_config table::get_vector_index_config(const col_key& col_key) const {
+        auto* index = static_cast<TableRef>(*this)->get_vector_index(col_key);
+        if (!index) {
+            throw std::logic_error("Column has no vector index");
+        }
+        const auto& core_config = index->config();
+        vector_index_config config;
+        config.metric = static_cast<vector_metric>(static_cast<uint8_t>(core_config.metric));
+        config.encoding = static_cast<vector_encoding>(static_cast<uint8_t>(core_config.encoding));
+        config.dimensions = core_config.dimensions;
+        config.m = core_config.m;
+        config.ef_construction = core_config.ef_construction;
+        config.ef_search = core_config.ef_search;
+        config.build_threads = core_config.build_threads;
+        return config;
     }
 
     bool operator ==(table const& lhs, table const& rhs) {

@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <barq_native/internal/bridge/obj_key.hpp>
+#include <barq_native/internal/bridge/vector_index.hpp>
 
 namespace barq {
     class TableRef;
@@ -68,6 +69,16 @@ namespace barq::native::internal::bridge {
             void remove_object(const obj_key &) const;
             obj get_object(const obj_key&) const;
             bool is_valid(const obj_key&) const;
+
+            // Vector (knn) index management. The index is a local, on-disk HNSW
+            // structure over a list-of-float column; it is never synced.
+            void add_vector_index(const col_key& col_key, const vector_index_config& config) const;
+            void add_vector_index(const col_key& col_key) const;
+            void remove_vector_index(const col_key& col_key) const;
+            [[nodiscard]] bool has_vector_index(const col_key& col_key) const;
+            // Returns the persisted config; throws if the column has no vector index.
+            [[nodiscard]] vector_index_config get_vector_index_config(const col_key& col_key) const;
+
             using underlying = TableRef;
 #ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
         storage::TableRef m_table[1];
