@@ -1,0 +1,2 @@
+add_executable(semantic_search main.cpp)
+target_link_libraries(semantic_search PRIVATE barq_native)

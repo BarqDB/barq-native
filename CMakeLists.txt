@@ -198,3 +198,7 @@ if (NOT BARQ_NATIVE_NO_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+if (NOT BARQ_NATIVE_NO_EXAMPLES)
+    add_subdirectory(examples)
+endif()
