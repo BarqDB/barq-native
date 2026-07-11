@@ -77,3 +77,56 @@ TEST_CASE("vector_indexed property", "[vector]") {
         CHECK(res[0].embedding.value() == std::vector<float>{0.6f, 0.8f, 0.0f, 0.0f});
     }
 }
+
+// End-to-end knn: opening the db reconciles the vector index for VectorDoc's
+// embedding, and knn() then returns the nearest objects ordered by distance.
+TEST_CASE("knn search", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    barq.write([&barq] {
+        auto add_vec = [&](int64_t id, std::vector<float> v) {
+            auto d = VectorDoc();
+            d._id = id;
+            d.embedding = std::move(v);
+            barq.add(std::move(d));
+        };
+        add_vec(1, {1.0f, 0.0f, 0.0f, 0.0f});
+        add_vec(2, {0.0f, 1.0f, 0.0f, 0.0f});
+        add_vec(3, {0.0f, 0.0f, 1.0f, 0.0f});
+        add_vec(4, {0.9f, 0.1f, 0.0f, 0.0f}); // nearly the same direction as id 1
+    });
+
+    SECTION("approximate knn returns the k nearest by cosine, closest first") {
+        auto nearest = barq.objects<VectorDoc>().knn(
+            &VectorDoc::embedding,
+            std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+            knn_options::approximate(2));
+
+        REQUIRE(nearest.size() == 2);
+        CHECK(nearest[0]._id == 1); // exact direction match
+        CHECK(nearest[1]._id == 4); // next closest by cosine
+    }
+
+    SECTION("exact knn returns the true nearest neighbour") {
+        auto nearest = barq.objects<VectorDoc>().knn(
+            &VectorDoc::embedding,
+            std::vector<float>{0.0f, 1.0f, 0.0f, 0.0f},
+            knn_options::exact(1));
+
+        REQUIRE(nearest.size() == 1);
+        CHECK(nearest[0]._id == 2);
+    }
+
+    SECTION("the index survives reopen (no rebuild needed)") {
+        auto reopened = db(config);
+        auto nearest = reopened.objects<VectorDoc>().knn(
+            &VectorDoc::embedding,
+            std::vector<float>{0.0f, 0.0f, 1.0f, 0.0f},
+            knn_options::approximate(1));
+        REQUIRE(nearest.size() == 1);
+        CHECK(nearest[0]._id == 3);
+    }
+}

@@ -62,12 +62,27 @@ namespace barq::native {
 
     struct db {
         static inline std::vector<internal::bridge::object_schema> schemas;
+        // Reconcilers registered by BARQ_SCHEMA, one per object type. A vector
+        // (knn) index is local-only and never travels in the schema or over
+        // sync, so instead of being a column flag it is (re)built here after the
+        // schema is applied and the tables exist. Each reconciler creates its
+        // type's missing vector indexes; on reopen the persisted index is
+        // already there, so it is a no-op.
+        static inline std::vector<void (*)(db&)> vector_index_reconcilers;
+
         internal::bridge::barq m_barq;
         explicit db(barq::native::db_config config)
         {
             if (!config.get_schema())
                 config.set_schema(db::schemas);
             m_barq = internal::bridge::barq(config);
+            reconcile_vector_indexes();
+        }
+
+        // Registered from BARQ_SCHEMA for every declared object type.
+        template <typename Cls>
+        static void register_vector_index_reconciler() {
+            vector_index_reconcilers.push_back(&db::reconcile_vector_indexes_for<Cls>);
         }
 
         void begin_write() const { m_barq.begin_transaction(); }
@@ -141,6 +156,51 @@ namespace barq::native {
         }
 
     private:
+        void reconcile_vector_indexes() {
+            for (auto reconciler : vector_index_reconcilers)
+                reconciler(*this);
+        }
+
+        // For one property: if it is vector_indexed and its index is not yet on
+        // disk, record the column and the config to build.
+        template <typename Property>
+        static void collect_missing_vector_index(
+                internal::bridge::table& table, const Property& p,
+                std::vector<std::pair<internal::bridge::col_key,
+                                      internal::bridge::vector_index_config>>& out) {
+            using Result = typename Property::Result;
+            if constexpr (internal::type_info::is_vector_indexed<Result>::value) {
+                auto col = table.get_column_key(p.name);
+                if (!table.has_vector_index(col)) {
+                    internal::bridge::vector_index_config cfg;
+                    cfg.metric = Result::metric;
+                    cfg.encoding = Result::encoding;
+                    cfg.dimensions = Result::dimensions;
+                    out.push_back({col, cfg});
+                }
+            }
+        }
+
+        template <typename Cls>
+        static void reconcile_vector_indexes_for(db& d) {
+            auto table = d.m_barq.table_for_object_type(managed<Cls>::schema.name);
+            std::vector<std::pair<internal::bridge::col_key,
+                                  internal::bridge::vector_index_config>> to_create;
+            std::apply([&](auto&&... p) {
+                (db::collect_missing_vector_index(table, p, to_create), ...);
+            }, managed<Cls>::schema.ps);
+            if (to_create.empty())
+                return;
+            // add_vector_index needs a write; only enter one when there is work.
+            // Re-acquire the table inside the transaction so the index is built
+            // against the write-version table accessor, not the read one.
+            d.write([&] {
+                auto write_table = d.m_barq.table_for_object_type(managed<Cls>::schema.name);
+                for (auto& entry : to_create)
+                    write_table.add_vector_index(entry.first, entry.second);
+            });
+        }
+
         template <size_t N, typename Tpl, typename ...Ts> auto v_add(const Tpl& tpl, const std::tuple<Ts...>& vs) {
             if constexpr (N + 1 == sizeof...(Ts)) {
                 auto managed = add(std::move(std::get<N>(vs)));

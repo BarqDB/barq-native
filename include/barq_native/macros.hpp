@@ -598,6 +598,7 @@ rbool managed<std::optional<type>>::operator op(const std::optional<type>& rhs) 
             auto it = std::find(std::begin(barq::native::db::schemas), std::end(barq::native::db::schemas), s);   \
             if (it == std::end(barq::native::db::schemas))                                                 \
                 barq::native::db::schemas.push_back(s);                                                    \
+            barq::native::db::register_vector_index_reconciler<cls>();                               \
         }                                                                                           \
     };                                                                                              \
     static inline meta_schema_##cls _meta_schema_##cls{};
