@@ -133,6 +133,20 @@ namespace barq::native {
         return v;
     }
 
+    static inline float serialize(const float& v, const std::optional<internal::bridge::barq>& = std::nullopt) {
+        return v;
+    }
+    static inline float deserialize(const float& v) {
+        return v;
+    }
+
+    static inline std::optional<float> serialize(const std::optional<float>& v, const std::optional<internal::bridge::barq>& = std::nullopt) {
+        return v;
+    }
+    static inline std::optional<float> deserialize(const std::optional<float>& v) {
+        return v;
+    }
+
     static inline bool serialize(bool v, const std::optional<internal::bridge::barq>& = std::nullopt) {
         return v;
     }

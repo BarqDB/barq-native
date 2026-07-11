@@ -10,6 +10,9 @@ namespace barq::native {
     __barq_native_build_optional_query(==, equal, double)
     __barq_native_build_optional_query(!=, not_equal, double)
 
+    __barq_native_build_optional_query(==, equal, float)
+    __barq_native_build_optional_query(!=, not_equal, float)
+
     __barq_native_build_optional_query(==, equal, bool)
     __barq_native_build_optional_query(!=, not_equal, bool)
 }

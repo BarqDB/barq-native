@@ -80,6 +80,8 @@ namespace barq::native::internal::bridge {
     template <>
     double get(results&, size_t);
     template <>
+    float get(results&, size_t);
+    template <>
     std::string get(results&, size_t);
     template <>
     ::barq::native::uuid get(results&, size_t);

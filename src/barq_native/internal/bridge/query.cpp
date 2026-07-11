@@ -101,6 +101,31 @@ namespace barq::native::internal::bridge {
         return *std::dynamic_pointer_cast<::barq::Columns<Double>>(m_subexpr) <= rhs;
     }
 
+    // FLOAT
+    query subexpr::equal(const std::optional<float>& rhs) const {
+        return *std::dynamic_pointer_cast<::barq::Columns<Float>>(m_subexpr) == rhs;
+    }
+
+    query subexpr::not_equal(const std::optional<float>& rhs) const {
+        return *std::dynamic_pointer_cast<::barq::Columns<Float>>(m_subexpr) != rhs;
+    }
+
+    query subexpr::greater(const std::optional<float>& rhs) const {
+        return *std::dynamic_pointer_cast<::barq::Columns<Float>>(m_subexpr) > rhs;
+    }
+
+    query subexpr::less(const std::optional<float>& rhs) const {
+        return *std::dynamic_pointer_cast<::barq::Columns<Float>>(m_subexpr) < rhs;
+    }
+
+    query subexpr::greater_equal(const std::optional<float>& rhs) const {
+        return *std::dynamic_pointer_cast<::barq::Columns<Float>>(m_subexpr) >= rhs;
+    }
+
+    query subexpr::less_equal(const std::optional<float>& rhs) const {
+        return *std::dynamic_pointer_cast<::barq::Columns<Float>>(m_subexpr) <= rhs;
+    }
+
     // BINARY
     query subexpr::equal(const std::optional<binary>& rhs) const {
         if (rhs) {
@@ -377,6 +402,11 @@ namespace barq::native::internal::bridge {
     }
 
     template<>
+    subexpr link_chain::column<float>(col_key col_name) {
+        return m_link_chain->column<Float>(col_name).clone();
+    }
+
+    template<>
     subexpr link_chain::column<::barq::native::decimal128>(col_key col_name) {
         return m_link_chain->column<Decimal128>(col_name).clone();
     }
@@ -519,6 +549,13 @@ namespace barq::native::internal::bridge {
     __generate_query_operator(less_equal, double)
     __generate_query_operator(equal, double)
     __generate_query_operator(not_equal, double)
+
+    __generate_query_operator(greater, float)
+    __generate_query_operator(less, float)
+    __generate_query_operator(greater_equal, float)
+    __generate_query_operator(less_equal, float)
+    __generate_query_operator(equal, float)
+    __generate_query_operator(not_equal, float)
 
     __generate_query_operator(greater, timestamp)
     __generate_query_operator(less, timestamp)

@@ -160,6 +160,10 @@ namespace barq::native::internal::bridge {
         return get_obj(o)->get<Double>(col_key);
     }
     template <>
+    float get(const obj& o, const col_key& col_key) {
+        return get_obj(o)->get<Float>(col_key);
+    }
+    template <>
     bool get(const obj& o, const col_key& col_key) {
         return get_obj(o)->get<bool>(col_key);
     }
@@ -206,6 +210,9 @@ namespace barq::native::internal::bridge {
     }
     void obj::set(const col_key &col_key, const double &value) {
         get_obj()->set<Double>(col_key, value);
+    }
+    void obj::set(const col_key &col_key, const float &value) {
+        get_obj()->set<Float>(col_key, value);
     }
     void obj::set(const col_key &col_key, const internal::bridge::uuid &value) {
         get_obj()->set<UUID>(col_key, value);
@@ -261,6 +268,9 @@ namespace barq::native::internal::bridge {
         get_obj()->set_list_values(col_key, values);
     }
     void obj::set_list_values(const col_key &col_key, const std::vector<double> &values) {
+        get_obj()->set_list_values(col_key, values);
+    }
+    void obj::set_list_values(const col_key &col_key, const std::vector<float> &values) {
         get_obj()->set_list_values(col_key, values);
     }
     void obj::set_list_values(const col_key &col_key, const std::vector<internal::bridge::uuid> &values) {
@@ -320,6 +330,9 @@ namespace barq::native::internal::bridge {
         get_obj()->set_list_values(col_key, values);
     }
     void obj::set_list_values(const col_key &col_key, const std::vector<std::optional<double>> &values) {
+        get_obj()->set_list_values(col_key, values);
+    }
+    void obj::set_list_values(const col_key &col_key, const std::vector<std::optional<float>> &values) {
         get_obj()->set_list_values(col_key, values);
     }
     void obj::set_list_values(const col_key &col_key, const std::vector<std::optional<std::string>> &values) {

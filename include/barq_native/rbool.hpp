@@ -123,6 +123,13 @@ namespace barq::native {
         define_numeric_query(double, greater_equal)
         define_numeric_query(double, less_equal)
 
+        define_query(float, equal)
+        define_query(float, not_equal)
+        define_numeric_query(float, greater)
+        define_numeric_query(float, less)
+        define_numeric_query(float, greater_equal)
+        define_numeric_query(float, less_equal)
+
         define_query(std::vector<uint8_t>, equal)
         define_query(std::vector<uint8_t>, not_equal)
 

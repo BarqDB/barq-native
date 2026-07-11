@@ -154,6 +154,15 @@ namespace barq::native::internal::bridge {
     }
 
     template <>
+    float get(results& res, size_t v) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return reinterpret_cast<Results*>(&res.m_results)->get<float>(v);
+#else
+        return res.m_results->get<float>(v);
+#endif
+    }
+
+    template <>
     std::string get(results& res, size_t v) {
 #ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
         return reinterpret_cast<Results*>(&res.m_results)->get<StringData>(v);

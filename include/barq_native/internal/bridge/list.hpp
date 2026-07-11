@@ -66,6 +66,7 @@ namespace barq::native::internal::bridge {
         void add(const std::string&);
         void add(const int64_t &);
         void add(const double &);
+        void add(const float &);
         void add(const bool &);
         void add(const binary &);
         void add(const uuid &);
@@ -78,6 +79,7 @@ namespace barq::native::internal::bridge {
 
         void set(size_t pos, const int64_t &);
         void set(size_t pos, const double &);
+        void set(size_t pos, const float &);
         void set(size_t pos, const bool &);
         void set(size_t pos, const std::string &);
         void set(size_t pos, const uuid &);
@@ -90,6 +92,7 @@ namespace barq::native::internal::bridge {
         size_t find(const int64_t &);
         size_t find(const bool &);
         size_t find(const double &);
+        size_t find(const float &);
         size_t find(const std::string &);
         size_t find(const uuid &);
         size_t find(const object_id &);
@@ -126,6 +129,8 @@ namespace barq::native::internal::bridge {
     template <>
     [[nodiscard]] double get(const list&, size_t idx);
     template <>
+    [[nodiscard]] float get(const list&, size_t idx);
+    template <>
     [[nodiscard]] binary get(const list&, size_t idx);
     template <>
     [[nodiscard]] uuid get(const list&, size_t idx);
@@ -142,6 +147,8 @@ namespace barq::native::internal::bridge {
     [[nodiscard]] std::optional<int64_t> get(const list& lst, size_t idx);
     template <>
     [[nodiscard]] std::optional<double> get(const list& lst, size_t idx);
+    template <>
+    [[nodiscard]] std::optional<float> get(const list& lst, size_t idx);
     template <>
     [[nodiscard]] std::optional<bool> get(const list& lst, size_t idx);
     template <>

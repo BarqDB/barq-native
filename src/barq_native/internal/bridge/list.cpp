@@ -156,6 +156,9 @@ namespace barq::native::internal::bridge {
     void list::add(const double &v) {
         get_list()->add(v);
     }
+    void list::add(const float &v) {
+        get_list()->add(v);
+    }
     void list::add(const binary &v) {
         get_list()->add(static_cast<BinaryData>(v));
     }
@@ -197,6 +200,10 @@ namespace barq::native::internal::bridge {
         return get_list(lst)->get<Double>(idx);
     }
     template <>
+    float get(const list& lst, size_t idx) {
+        return get_list(lst)->get<Float>(idx);
+    }
+    template <>
     binary get(const list& lst, size_t idx) {
         return get_list(lst)->get<BinaryData>(idx);
     }
@@ -236,6 +243,10 @@ namespace barq::native::internal::bridge {
     template <>
     std::optional<double> get(const list& lst, size_t idx) {
         return get_list(lst)->get<std::optional<Double>>(idx);
+    }
+    template <>
+    std::optional<float> get(const list& lst, size_t idx) {
+        return get_list(lst)->get<std::optional<Float>>(idx);
     }
     template <>
     std::optional<bool> get(const list& lst, size_t idx) {
@@ -290,6 +301,7 @@ namespace barq::native::internal::bridge {
     void list::set(size_t pos, const bool &v) { get_list()->set(pos, v); }
     void list::set(size_t pos, const std::string &v) { get_list()->set(pos, StringData(v)); }
     void list::set(size_t pos, const double &v) { get_list()->set(pos, v); }
+    void list::set(size_t pos, const float &v) { get_list()->set(pos, v); }
     void list::set(size_t pos, const uuid &v) { get_list()->set(pos, static_cast<UUID>(v)); }
     void list::set(size_t pos, const object_id &v) { get_list()->set(pos, static_cast<ObjectId>(v)); }
     void list::set(size_t pos, const decimal128 &v) { get_list()->set(pos, static_cast<Decimal128>(v)); }
@@ -300,6 +312,7 @@ namespace barq::native::internal::bridge {
     size_t list::find(const int64_t &v) { return get_list()->find(v); }
     size_t list::find(const bool &v) { return get_list()->find(v); }
     size_t list::find(const double &v) { return get_list()->find(v); }
+    size_t list::find(const float &v) { return get_list()->find(v); }
     size_t list::find(const std::string &v) { return get_list()->find(StringData(v)); }
     size_t list::find(const uuid &v) { return get_list()->find(static_cast<UUID>(v)); }
     size_t list::find(const object_id &v) { return get_list()->find(static_cast<ObjectId>(v)); }

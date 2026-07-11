@@ -247,6 +247,118 @@ namespace barq::native {
     };
 
     template<>
+    struct managed<float> : managed_base {
+        using managed<float>::managed_base::operator=;
+
+        managed_base& operator =(const float& v) {
+            this->m_obj->template set<float>(m_key, v);
+            return *this;
+        }
+
+        managed_base& operator =(const int& v) {
+            this->m_obj->template set<float>(m_key, (float)v);
+            return *this;
+        }
+
+        [[nodiscard]] float detach() const {
+            return m_obj->template get<float>(m_key);
+        }
+
+        float operator *() const {
+            return detach();
+        }
+        [[nodiscard]] operator float() const {
+            return detach();
+        }
+
+        template<typename T>
+        std::enable_if_t< std::disjunction_v<std::is_integral<T>, std::is_floating_point<T>>, rbool> operator==(const T& rhs) const noexcept {
+            if (this->m_rbool_query) {
+                return this->m_rbool_query->equal(m_key, (float)rhs);
+            }
+            return serialize(detach()) == rhs;
+        }
+
+        template<typename T>
+        std::enable_if_t< std::disjunction_v<std::is_integral<T>, std::is_floating_point<T>>, rbool> operator!=(const T& rhs) const noexcept {
+            if (this->m_rbool_query) {
+                return this->m_rbool_query->not_equal(m_key, (float)rhs);
+            }
+            return serialize(detach()) != rhs;
+        }
+
+        template<typename T>
+        std::enable_if_t< std::disjunction_v<std::is_integral<T>, std::is_floating_point<T>>, rbool> operator>(const T& rhs) const noexcept {
+            if (this->m_rbool_query) {
+                return this->m_rbool_query->greater(m_key, (float)rhs);
+            }
+            return serialize(detach()) > rhs;
+        }
+
+        template<typename T>
+        std::enable_if_t< std::disjunction_v<std::is_integral<T>, std::is_floating_point<T>>, rbool> operator<(const T& rhs) const noexcept {
+            if (this->m_rbool_query) {
+                return this->m_rbool_query->less(m_key, (float)rhs);
+            }
+            return serialize(detach()) < rhs;
+        }
+
+        template<typename T>
+        std::enable_if_t< std::disjunction_v<std::is_integral<T>, std::is_floating_point<T>>, rbool> operator>=(const T& rhs) const noexcept {
+            if (this->m_rbool_query) {
+                return this->m_rbool_query->greater_equal(m_key, (float)rhs);
+            }
+            return serialize(detach()) >= rhs;
+        }
+
+        template<typename T>
+        std::enable_if_t< std::disjunction_v<std::is_integral<T>, std::is_floating_point<T>>, rbool> operator<=(const T& rhs) const noexcept {
+            if (this->m_rbool_query) {
+                return this->m_rbool_query->less_equal(m_key, (float)rhs);
+            }
+            return serialize(detach()) <= rhs;
+        }
+
+        void operator+=(const float& o) {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val + o);
+        }
+        void operator++(int) {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val + 1.0f);
+        }
+        void operator++() {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val + 1.0f);
+        }
+        void operator-=(const float& o) {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val - o);
+        }
+        void operator--(int) {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val - 1.0f);
+        }
+        void operator--() {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val - 1.0f);
+        }
+        void operator*=(const float& o) {
+            auto old_val = m_obj->template get<float>(m_key);
+            m_obj->template set<float>(this->m_key, old_val * o);
+        }
+
+    private:
+        managed() = default;
+        managed(const managed&) = delete;
+        managed(managed &&) = delete;
+        managed& operator=(const managed&) = delete;
+        managed& operator=(managed&&) = delete;
+        template<typename, typename>
+        friend struct managed;
+    };
+
+    template<>
     struct managed<bool> : managed_base {
         using managed<bool>::managed_base::operator=;
 
@@ -361,6 +473,7 @@ namespace barq::native {
 
 BARQ_NATIVE_MANAGED_OPTIONAL_NUMERIC(int64_t)
 BARQ_NATIVE_MANAGED_OPTIONAL_NUMERIC(double)
+BARQ_NATIVE_MANAGED_OPTIONAL_NUMERIC(float)
 
     template<>
     struct managed<std::optional<bool>> : managed_base {

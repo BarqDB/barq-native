@@ -212,6 +212,13 @@ namespace barq::native::internal::type_info {
         }
     };
     template <>
+    struct type_info<float> {
+        using internal_type = float;
+        static constexpr bridge::property::type type() {
+            return bridge::property::type::Float;
+        }
+    };
+    template <>
     struct type_info<bool> {
         using internal_type = bool;
         static constexpr bridge::property::type type() {

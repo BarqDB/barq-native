@@ -70,6 +70,13 @@ namespace barq::native::internal::bridge {
         query greater_equal(const std::optional<double>& rhs) const;
         query less_equal(const std::optional<double>& rhs) const;
 
+        query equal(const std::optional<float>& rhs) const;
+        query not_equal(const std::optional<float>& rhs) const;
+        query greater(const std::optional<float>& rhs) const;
+        query less(const std::optional<float>& rhs) const;
+        query greater_equal(const std::optional<float>& rhs) const;
+        query less_equal(const std::optional<float>& rhs) const;
+
         query equal(const std::optional<binary>& rhs) const;
         query not_equal(const std::optional<binary>& rhs) const;
 
@@ -166,6 +173,14 @@ namespace barq::native::internal::bridge {
         query& less(col_key column_key, double value);
         query& less_equal(col_key column_key, double value);
         query& between(col_key column_key, double from, double to);
+
+        // Conditions: float
+        query& equal(col_key column_key, float value);
+        query& not_equal(col_key column_key, float value);
+        query& greater(col_key column_key, float value);
+        query& greater_equal(col_key column_key, float value);
+        query& less(col_key column_key, float value);
+        query& less_equal(col_key column_key, float value);
 
         // Conditions: timestamp
         query& equal(col_key column_key, timestamp value);
