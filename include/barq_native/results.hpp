@@ -71,12 +71,14 @@ namespace barq::native {
         }
 
         virtual ~results_common_base() = default;
+        // where() replaces any earlier predicate (its historical semantics) but
+        // must keep the descriptor ordering a knn() or sort() installed —
+        // rebuilding from the raw table query used to silently drop it.
         Derived where(const std::string &query, const std::vector<barq::native::mixed>& arguments) {
             std::vector<internal::bridge::mixed> mixed_args;
             for(auto& a : arguments)
                 mixed_args.push_back(serialize(a));
-            return Derived(internal::bridge::results(m_parent.get_barq(),
-                                                     m_parent.get_table().query(query, std::move(mixed_args))));
+            return Derived(m_parent.with_query(m_parent.get_table().query(query, std::move(mixed_args))));
         }
 
         Derived where(std::function<rbool(managed<T>&)>&& fn) {
@@ -88,7 +90,7 @@ namespace barq::native {
             rbool query = rbool(internal::bridge::query(table_ref));
             auto query_object = managed<T>::prepare_for_query(barq, &query);
             auto full_query = fn(query_object).q;
-            return Derived(internal::bridge::results(m_parent.get_barq(), full_query));
+            return Derived(m_parent.with_query(full_query));
         }
 
         struct results_callback_wrapper : internal::bridge::collection_change_callback {

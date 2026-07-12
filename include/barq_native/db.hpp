@@ -180,7 +180,8 @@ namespace barq::native {
     private:
 
         // For one property: if it is vector_indexed and its index is not yet on
-        // disk, record the column and the config to build.
+        // disk (or only its query-time ef_search drifted, which core adopts in
+        // place), record the column and the config to apply.
         template <typename Property>
         static void collect_missing_vector_index(
                 internal::bridge::table& table, const Property& p,
@@ -199,12 +200,17 @@ namespace barq::native {
                 cfg.build_threads = Result::build_threads;
                 if (table.has_vector_index(col)) {
                     auto existing = table.get_vector_index_config(col);
+                    // Only the graph-shaping settings are identity; ef_search is
+                    // a query-time knob (mirrors core's compatibility rule) and
+                    // a drifted value is updated in place by add_vector_index.
                     if (existing.metric != cfg.metric || existing.encoding != cfg.encoding ||
                         existing.dimensions != cfg.dimensions || existing.m != cfg.m ||
-                        existing.ef_construction != cfg.ef_construction || existing.ef_search != cfg.ef_search) {
+                        existing.ef_construction != cfg.ef_construction) {
                         throw std::logic_error("The vector index on '" + std::string(p.name) +
                                                "' has a different persisted configuration");
                     }
+                    if (existing.ef_search != cfg.ef_search)
+                        out.push_back({col, cfg});
                 } else {
                     out.push_back({col, cfg});
                 }
@@ -214,6 +220,11 @@ namespace barq::native {
         template <typename Cls>
         static void reconcile_vector_indexes_for(db& d) {
             auto table = d.m_barq.table_for_object_type(managed<Cls>::schema.name);
+            // The reconciler registry is program-global, but this db may have
+            // been opened with a subset of the declared types (open<Ts...>) —
+            // skip types the opened file doesn't contain.
+            if (!table.is_valid())
+                return;
             std::vector<std::pair<internal::bridge::col_key,
                                   internal::bridge::vector_index_config>> to_create;
             std::apply([&](auto&&... p) {

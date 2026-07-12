@@ -53,7 +53,8 @@ namespace barq::native {
               size_t BuildThreads = 0>
     struct vector_indexed {
         static_assert(Dims > 0, "vector_indexed<> must declare a positive dimension count");
-        static_assert(M > 0, "vector_indexed<> must use a positive graph degree");
+        // M == 1 would divide by log(1) == 0 in the HNSW level assignment.
+        static_assert(M >= 2, "vector_indexed<> must use a graph degree of at least 2");
         static_assert(EfConstruction > 0, "vector_indexed<> must use a positive construction beam");
 
         static constexpr size_t dimensions = Dims;

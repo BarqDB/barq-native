@@ -59,6 +59,11 @@ namespace barq::native::internal::bridge {
         [[nodiscard]] table get_table() const;
         results(const barq&, const query&);
         results sort(const std::vector<sort_descriptor>&);
+        // Rebuild these results on a new query predicate while keeping the
+        // receiver's descriptor ordering (sort/knn). Mirrors where()'s
+        // historical replace-the-filter semantics without dropping the
+        // ordering the way constructing from a raw table query would.
+        results with_query(const query&);
         // k-nearest-neighbour search over a vector-indexed list-of-float column.
         // Returns the k nearest rows ordered closest first. `ef` is the search
         // beam width (0 = auto); when `exact` is true it is a brute-force scan.

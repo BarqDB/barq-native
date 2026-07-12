@@ -126,6 +126,15 @@ namespace barq::native::internal::bridge {
 #endif
     }
 
+    results results::with_query(const query& q) {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        auto& self = *reinterpret_cast<Results*>(&m_results);
+        return Results(self.get_barq(), q, self.get_descriptor_ordering());
+#else
+        return Results(m_results->get_barq(), q, m_results->get_descriptor_ordering());
+#endif
+    }
+
     results results::freeze(const barq& target) {
 #ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
         return reinterpret_cast<Results*>(&m_results)->freeze(target);

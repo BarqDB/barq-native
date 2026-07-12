@@ -283,6 +283,102 @@ TEST_CASE("knn within a filtered subset", "[vector]") {
     CHECK(near[1]._id == 3);
 }
 
+// The reverse chain: a where() applied to a knn result must narrow the knn
+// subset (keeping its distance order), not silently rebuild from the raw table.
+TEST_CASE("where() after knn() keeps the knn subset and order", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    barq.write([&barq] {
+        auto add = [&](int64_t id, std::string text, std::vector<float> v) {
+            auto d = VectorDoc();
+            d._id = id;
+            d.text = std::move(text);
+            d.embedding = std::move(v);
+            barq.add(std::move(d));
+        };
+        add(1, "skip", {1.0f, 0.0f, 0.0f, 0.0f}); // exact match, filtered out below
+        add(2, "keep", {0.9f, 0.1f, 0.0f, 0.0f});
+        add(3, "keep", {0.5f, 0.5f, 0.0f, 0.0f});
+        add(4, "keep", {0.0f, 0.0f, 1.0f, 0.0f});
+    });
+
+    auto near_keeps = barq.objects<VectorDoc>()
+                          .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+                               knn_options::exact(2))
+                          .where([](auto&& d) { return d.text == "keep"; });
+
+    // The two nearest keeps, closest first — not every keep in table order.
+    REQUIRE(near_keeps.size() == 2);
+    CHECK(near_keeps[0]._id == 2);
+    CHECK(near_keeps[1]._id == 3);
+
+    // A filter matching nothing empties the result instead of resurrecting rows.
+    CHECK(barq.objects<VectorDoc>()
+              .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+                   knn_options::exact(2))
+              .where([](auto&& d) { return d.text == "nope"; })
+              .size() == 0);
+}
+
+// ef_search is a query-time knob: when the persisted value drifts from the
+// declared one (an older build, another SDK, a tuning experiment), the open-time
+// reconcile adopts the declared value in place instead of failing the open.
+TEST_CASE("a drifted ef_search is adopted in place at open", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    {
+        auto barq = db(config); // builds the index with the declared ef_search (16)
+        barq.write([&barq] {
+            auto d = VectorDoc();
+            d._id = 1;
+            d.embedding = {1.0f, 0.0f, 0.0f, 0.0f};
+            barq.add(std::move(d));
+        });
+
+        // Simulate the drift through the same core call the reconcile uses.
+        barq.write([&barq] {
+            auto table = barq.m_barq.table_for_object_type("VectorDoc");
+            auto col = table.get_column_key("embedding");
+            auto drifted = table.get_vector_index_config(col);
+            drifted.ef_search = 99;
+            table.add_vector_index(col, drifted);
+        });
+        auto table = barq.m_barq.table_for_object_type("VectorDoc");
+        CHECK(table.get_vector_index_config(table.get_column_key("embedding")).ef_search == 99);
+    }
+
+    // Reopen with the declared schema: no throw, and the beam is back to 16.
+    auto reopened = db(config);
+    auto table = reopened.m_barq.table_for_object_type("VectorDoc");
+    CHECK(table.get_vector_index_config(table.get_column_key("embedding")).ef_search == 16);
+    CHECK(reopened.objects<VectorDoc>()
+              .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+                   knn_options::approximate(1))
+              .size() == 1);
+}
+
+// The reconciler registry is program-global; opening a file that contains only
+// a subset of the declared types (open<Ts...>) must skip the vector types that
+// are absent instead of throwing from the constructor.
+TEST_CASE("subset-schema open skips absent vector types", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+
+    auto barq = open<Dog>(config); // VectorDoc is registered but not in this file
+    barq.write([&barq] {
+        auto d = Dog();
+        d._id = 1;
+        d.name = "rex";
+        barq.add(std::move(d));
+    });
+    CHECK(barq.objects<Dog>().size() == 1);
+}
+
 // The declared dimension count is enforced on queries: a query vector whose
 // length does not match the index is rejected rather than answered wrongly.
 TEST_CASE("a wrong-dimension query is rejected", "[vector]") {

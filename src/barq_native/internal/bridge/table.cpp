@@ -104,6 +104,14 @@ namespace barq::native::internal::bridge {
 #endif
     }
 
+    bool table::is_valid() const {
+#ifdef BARQ_NATIVE_HAVE_GENERATED_BRIDGE_TYPES
+        return bool(*reinterpret_cast<const TableRef*>(&m_table));
+#else
+        return m_table && bool(*m_table);
+#endif
+    }
+
     query table::query(const std::string& a,
                        const std::vector<mixed>& b) const {
         std::vector<Mixed> v2;

@@ -596,9 +596,11 @@ rbool managed<std::optional<type>>::operator op(const std::optional<type>& rhs) 
         meta_schema_##cls() {                                                                       \
             auto s = managed<cls>::schema.to_core_schema();                                         \
             auto it = std::find(std::begin(barq::native::db::schemas), std::end(barq::native::db::schemas), s);   \
-            if (it == std::end(barq::native::db::schemas))                                                 \
+            if (it == std::end(barq::native::db::schemas)) {                                               \
                 barq::native::db::schemas.push_back(s);                                                    \
-            barq::native::db::register_vector_index_reconciler<cls>();                               \
+                /* inside the dedup guard so N translation units register once */                   \
+                barq::native::db::register_vector_index_reconciler<cls>();                           \
+            }                                                                                       \
         }                                                                                           \
     };                                                                                              \
     static inline meta_schema_##cls _meta_schema_##cls{};

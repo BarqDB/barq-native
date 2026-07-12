@@ -50,6 +50,10 @@ namespace barq::native::internal::bridge {
             operator TableRef() const;
             operator ConstTableRef() const;
 
+            // False when this wraps a null TableRef — e.g. the object type is
+            // not part of the opened file's schema.
+            [[nodiscard]] bool is_valid() const;
+
             col_key get_column_key(const std::string_view &name) const;
             uint32_t get_key() const;
             std::string get_name() const;
