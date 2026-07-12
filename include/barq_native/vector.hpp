@@ -36,6 +36,8 @@ namespace barq::native {
 
     // Declares a property as a float embedding with a persisted vector (knn)
     // index, e.g. `vector_indexed<768, vector_metric::cosine> embedding;`.
+    // The remaining optional template arguments tune the encoding, graph degree,
+    // construction beam, default search beam, and full-build worker count.
     //
     // The dimension count is required and enforced. Cosine is the SDK default
     // because it is what most text/image embeddings expect. Storage is a plain
@@ -44,13 +46,23 @@ namespace barq::native {
     // half-updated embedding is meaningless).
     template <size_t Dims,
               vector_metric Metric = vector_metric::cosine,
-              vector_encoding Encoding = vector_encoding::float32>
+              vector_encoding Encoding = vector_encoding::float32,
+              size_t M = 16,
+              size_t EfConstruction = 200,
+              size_t EfSearch = 0,
+              size_t BuildThreads = 0>
     struct vector_indexed {
         static_assert(Dims > 0, "vector_indexed<> must declare a positive dimension count");
+        static_assert(M > 0, "vector_indexed<> must use a positive graph degree");
+        static_assert(EfConstruction > 0, "vector_indexed<> must use a positive construction beam");
 
         static constexpr size_t dimensions = Dims;
         static constexpr vector_metric metric = Metric;
         static constexpr vector_encoding encoding = Encoding;
+        static constexpr size_t m = M;
+        static constexpr size_t ef_construction = EfConstruction;
+        static constexpr size_t ef_search = EfSearch;
+        static constexpr size_t build_threads = BuildThreads;
         using value_type = float;
 
         vector_indexed() = default;

@@ -33,6 +33,7 @@
 #include <filesystem>
 #include <optional>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -188,11 +189,23 @@ namespace barq::native {
             using Result = typename Property::Result;
             if constexpr (internal::type_info::is_vector_indexed<Result>::value) {
                 auto col = table.get_column_key(p.name);
-                if (!table.has_vector_index(col)) {
-                    internal::bridge::vector_index_config cfg;
-                    cfg.metric = Result::metric;
-                    cfg.encoding = Result::encoding;
-                    cfg.dimensions = Result::dimensions;
+                internal::bridge::vector_index_config cfg;
+                cfg.metric = Result::metric;
+                cfg.encoding = Result::encoding;
+                cfg.dimensions = Result::dimensions;
+                cfg.m = Result::m;
+                cfg.ef_construction = Result::ef_construction;
+                cfg.ef_search = Result::ef_search;
+                cfg.build_threads = Result::build_threads;
+                if (table.has_vector_index(col)) {
+                    auto existing = table.get_vector_index_config(col);
+                    if (existing.metric != cfg.metric || existing.encoding != cfg.encoding ||
+                        existing.dimensions != cfg.dimensions || existing.m != cfg.m ||
+                        existing.ef_construction != cfg.ef_construction || existing.ef_search != cfg.ef_search) {
+                        throw std::logic_error("The vector index on '" + std::string(p.name) +
+                                               "' has a different persisted configuration");
+                    }
+                } else {
                     out.push_back({col, cfg});
                 }
             }

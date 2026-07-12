@@ -40,9 +40,13 @@ namespace barq::native {
     // supported operations.
     template <size_t Dims,
               internal::bridge::vector_metric Metric,
-              internal::bridge::vector_encoding Encoding>
-    struct managed<vector_indexed<Dims, Metric, Encoding>> : managed_base {
-        using Wrapped = vector_indexed<Dims, Metric, Encoding>;
+              internal::bridge::vector_encoding Encoding,
+              size_t M,
+              size_t EfConstruction,
+              size_t EfSearch,
+              size_t BuildThreads>
+    struct managed<vector_indexed<Dims, Metric, Encoding, M, EfConstruction, EfSearch, BuildThreads>> : managed_base {
+        using Wrapped = vector_indexed<Dims, Metric, Encoding, M, EfConstruction, EfSearch, BuildThreads>;
 
         // Whole-vector assignment. A `Wrapped` converts to `std::vector<float>`,
         // so this single overload also accepts the wrapper and braced lists.

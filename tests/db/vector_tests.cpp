@@ -9,7 +9,7 @@ namespace barq::native {
     struct VectorDoc {
         barq::native::primary_key<int64_t> _id;
         std::string text;
-        vector_indexed<4, vector_metric::cosine> embedding;
+        vector_indexed<4, vector_metric::cosine, vector_encoding::sq8, 8, 32, 16, 1> embedding;
     };
     BARQ_SCHEMA(VectorDoc, _id, text, embedding)
 }

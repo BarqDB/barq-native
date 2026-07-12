@@ -32,7 +32,8 @@ namespace barq::native {
     struct indexed;
     template<typename>
     struct fulltext;
-    template <size_t Dims, internal::bridge::vector_metric Metric, internal::bridge::vector_encoding Encoding>
+    template <size_t Dims, internal::bridge::vector_metric Metric, internal::bridge::vector_encoding Encoding,
+              size_t M, size_t EfConstruction, size_t EfSearch, size_t BuildThreads>
     struct vector_indexed;
 
     template <typename T, typename = void>
@@ -525,15 +526,16 @@ namespace barq::native {
     };
     // A vector_indexed column stores a plain list of floats; defer to the
     // float-vector accessor. The knn index is created separately.
-    template <size_t Dims, internal::bridge::vector_metric Metric, internal::bridge::vector_encoding Encoding>
-    struct accessor<vector_indexed<Dims, Metric, Encoding>> {
+    template <size_t Dims, internal::bridge::vector_metric Metric, internal::bridge::vector_encoding Encoding,
+              size_t M, size_t EfConstruction, size_t EfSearch, size_t BuildThreads>
+    struct accessor<vector_indexed<Dims, Metric, Encoding, M, EfConstruction, EfSearch, BuildThreads>> {
         static inline void set(internal::bridge::obj& obj,
                                const internal::bridge::col_key& key,
                                const internal::bridge::barq& barq,
-                               const vector_indexed<Dims, Metric, Encoding>& value) {
+                               const vector_indexed<Dims, Metric, Encoding, M, EfConstruction, EfSearch,
+                                                    BuildThreads>& value) {
             accessor<std::vector<float>>::set(obj, key, barq, value.value);
         }
     };
 } // barq
 #endif//BARQ_NATIVE_ACCESSORS_HPP
-
