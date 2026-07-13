@@ -12,6 +12,12 @@ namespace barq::native {
         vector_indexed<4, vector_metric::cosine, vector_encoding::sq8, 8, 32, 16, 1> embedding;
     };
     BARQ_SCHEMA(VectorDoc, _id, text, embedding)
+
+    struct PlainVectorDoc {
+        barq::native::primary_key<int64_t> _id;
+        std::vector<float> embedding; // deliberately not vector_indexed<>
+    };
+    BARQ_SCHEMA(PlainVectorDoc, _id, embedding)
 }
 
 // Storage behaviour of a vector_indexed<> property. It stores a list of floats
@@ -412,6 +418,31 @@ TEST_CASE("a wrong-dimension query is rejected", "[vector]") {
               .knn(&VectorDoc::embedding, std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
                    knn_options::approximate(1))
               .size() == 1);
+}
+
+// knn needs a persisted vector index on the property. A plain float list has
+// none, and the search must be refused eagerly on the calling thread — not
+// deferred to the engine, whose error would surface on whatever thread
+// evaluates the results (and, on older cores, was no error at all but a
+// silent unranked answer).
+TEST_CASE("knn on a property without a vector index is refused", "[vector]") {
+    barq_path path;
+    barq::native::db_config config;
+    config.set_path(path);
+    auto barq = db(config);
+
+    barq.write([&barq] {
+        auto d = PlainVectorDoc();
+        d._id = 1;
+        d.embedding = {1.0f, 0.0f, 0.0f, 0.0f};
+        barq.add(std::move(d));
+    });
+
+    CHECK_THROWS_WITH(barq.objects<PlainVectorDoc>().knn(
+                          &PlainVectorDoc::embedding,
+                          std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f},
+                          knn_options::approximate(1)),
+                      "Property 'embedding' has no vector index");
 }
 
 // The vector index is local, so a client reset (which discards local state)

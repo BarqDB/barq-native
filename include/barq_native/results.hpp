@@ -377,7 +377,14 @@ namespace barq::native {
         Derived knn(PropertyType T::* ptr, const std::vector<float>& query_vector,
                     const knn_options& options) {
             auto property_name = managed<T>::schema.name_for_property(ptr);
-            auto column_key = this->m_parent.get_table().get_column_key(property_name);
+            auto table = this->m_parent.get_table();
+            auto column_key = table.get_column_key(property_name);
+            // Refuse a non-indexed property eagerly on the calling thread —
+            // deferred to the engine, the error would surface on whatever
+            // thread evaluates the results, including a notification thread.
+            if (!table.has_vector_index(column_key)) {
+                throw std::logic_error("Property '" + std::string(property_name) + "' has no vector index");
+            }
             return Derived(this->m_parent.knn(column_key, query_vector,
                                               options.k(), options.ef(), options.is_exact()));
         }
