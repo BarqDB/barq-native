@@ -29,7 +29,7 @@ set(BARQ_CORE_GIT_REPOSITORY "https://github.com/BarqDB/barq-core.git" CACHE STR
 # accessor fix — so fetch-based builds are reproducible instead of tracking a
 # moving `main`. Bump deliberately when barq-core advances. Local development can
 # point at a working tree instead with -DBARQ_CORE_SOURCE_DIR=/path/to/barq-core.
-set(BARQ_CORE_GIT_TAG "149de60027e02324cbc292570ef70e883005ea40" CACHE STRING "Barq Core git ref")
+set(BARQ_CORE_GIT_TAG "53e153ca90c756ae19388f197b5bf741fb0a84e7" CACHE STRING "Barq Core git ref")
 set(BARQ_CORE_SOURCE_DIR "" CACHE PATH "Optional local Barq Core checkout")
 
 if(BARQ_CORE_SOURCE_DIR)
